@@ -53,7 +53,7 @@ inter=0
 export inter
 echo $$ > .script.pid
 #
-system="$(basename $inputfile .dat)"
+system="$(basename $inputfile .com)"
 echo "   Running TS opt    "
 start=$(date +%s.%N)
 TS.sh $inputfile > /dev/null

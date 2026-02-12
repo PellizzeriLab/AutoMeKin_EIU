@@ -13,7 +13,7 @@ cwd=$PWD
 exe="IRC.sh"
 source utils.sh
 #On exit remove tmp files
-tmp_files=(black* ConnMat deg* labels mingeom ScalMat sprint.out tmp* screening.log)
+tmp_files=(black* ConnMat deg* labels mingeom.xyz ScalMat sprint.out tmp* screening.log)
 trap cleanup EXIT INT
 #current working dir
 

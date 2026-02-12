@@ -11,7 +11,7 @@ read_input
 ###
 
 #remove tmp files
-tmp_files=(fort.* deg.out deg_form.out deg* mingeom ScalMat sprint.out tmp* sprint.out $tsdirll/IRC/*.arc $tsdirll/IRC/*.mop $tsdirll/TSs/*.mop)
+tmp_files=(fort.* deg.out deg_form.out deg* mingeom.xyz ScalMat sprint.out tmp* sprint.out $tsdirll/IRC/*.arc $tsdirll/IRC/*.mop $tsdirll/TSs/*.mop)
 trap 'err_report $LINENO' ERR
 trap cleanup EXIT INT
 ###
@@ -118,12 +118,12 @@ do
      fi
   fi
 ##min or prod##
-  echo $natom > mingeom
-  echo "" >> mingeom  
-  echo "$geomf" >> mingeom
-  createMat.py mingeom 3 $nA
+  echo $natom > mingeom.xyz
+  echo "" >> mingeom.xyz  
+  echo "$geomf" >> mingeom.xyz
+  createMat.py mingeom.xyz 3 $nA
   echo "1" $natom | cat - ConnMat |  sprint2.exe >sprint.out
-  paste <(awk 'NF==4{print $1}' mingeom) <(deg.sh) >deg.out
+  paste <(awk 'NF==4{print $1}' mingeom.xyz) <(deg.sh) >deg.out
   deg_form.sh > deg_form.out
   echo $ef > ${tsdirll}/MINs/${namef}_data
   format.sh $namef ${tsdirll}/MINs ${nfrag_th}
@@ -184,12 +184,12 @@ do
      fi
   fi
 ##min or prod##
-  echo $natom > mingeom
-  echo "" >> mingeom  
-  echo "$geomr" >> mingeom
-  createMat.py mingeom 3 $nA
+  echo $natom > mingeom.xyz
+  echo "" >> mingeom.xyz  
+  echo "$geomr" >> mingeom.xyz
+  createMat.py mingeom.xyz 3 $nA
   echo "1" $natom | cat - ConnMat |  sprint2.exe >sprint.out
-  paste <(awk 'NF==4{print $1}' mingeom) <(deg.sh) >deg.out
+  paste <(awk 'NF==4{print $1}' mingeom.xyz) <(deg.sh) >deg.out
   deg_form.sh > deg_form.out
   echo $er > ${tsdirll}/MINs/${namer}_data
   format.sh $namer ${tsdirll}/MINs ${nfrag_th}

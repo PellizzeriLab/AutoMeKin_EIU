@@ -22,7 +22,7 @@ avgerr=$(echo $avgerr | awk '{avg=$1;if(avg>0.001) avg=0.001;print avg}' )
 bigerr=$(echo $bigerr | awk '{big=$1;if(big>1) big=1;print big}' )
 
 #On exit remove tmp files
-tmp_files=($tsdirhl/IRC/*.chk black* minfailed_list labels mingeom sprint.dat sprint.out sprint.* deg.out deg_form.out deg* tmp* ConnMat ScalMat) 
+tmp_files=($tsdirhl/IRC/*.chk black* minfailed_list labels mingeom.xyz sprint.dat sprint.out sprint.* deg.out deg_form.out deg* tmp* ConnMat ScalMat) 
 trap 'err_report $LINENO' ERR
 trap cleanup EXIT INT
 if [ ! -d "$tsdirhl/PRODs" ]; then
@@ -110,11 +110,11 @@ do
      geom="$(awk 'NR>2{print $0}' $xyz)"
   fi
 #Now we screen the list to rename duplicates
-  echo $natom > mingeom
-  echo '' >> mingeom
-  echo "$geom"  >>mingeom
+  echo $natom > mingeom.xyz
+  echo '' >> mingeom.xyz
+  echo "$geom"  >>mingeom.xyz
 ##If the calc. was not done skip this minimum
-  anlf=$(wc -l mingeom | awk '{print $1}')
+  anlf=$(wc -l mingeom.xyz | awk '{print $1}')
   nlmg=$(($natom+2))
   if [ $anlf -lt $nlmg ]; then
      echo "Double check this opt: $name"
@@ -122,10 +122,10 @@ do
   fi
 ##
   echo "1" $natom > sprint.dat
-  createMat.py mingeom 3 $nA
+  createMat.py mingeom.xyz 3 $nA
   cat ConnMat >> sprint.dat
   sprint2.exe <sprint.dat >sprint.out
-  paste <(awk 'NF==4{print $1}' mingeom) <(deg.sh) >deg.out
+  paste <(awk 'NF==4{print $1}' mingeom.xyz) <(deg.sh) >deg.out
   deg_form.sh > deg_form.out
 ##
   echo "This is a just to see if there is more than one fragment" > $tsdirhl/MINs/${name}_data

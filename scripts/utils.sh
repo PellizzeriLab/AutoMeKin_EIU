@@ -1354,13 +1354,13 @@ echo "Screening" > $tsdirhl/TSs/tslist_screened
 
 function screen_ts_hl {
 echo ts$number"_out data"> ${tsdirhl}/TSs/${name}_data
-echo $natom >mingeom
-echo '' >>mingeom
-echo "$geom" >> mingeom
-createMat.py mingeom 2 $nA
+echo $natom >mingeom.xyz
+echo '' >>mingeom.xyz
+echo "$geom" >> mingeom.xyz
+createMat.py mingeom.xyz 2 $nA
 echo "1 $natom" | cat - ConnMat | sprint.exe >sprint.out
 
-paste <(awk 'NF==4{print $1}' mingeom) <(deg.sh) >deg.out
+paste <(awk 'NF==4{print $1}' mingeom.xyz) <(deg.sh) >deg.out
 deg_form.sh > deg_form.out
 ##
 echo $energy >> ${tsdirhl}/TSs/${name}_data
@@ -1380,15 +1380,15 @@ cat ${tsdirhl}/TSs/${name}_data >> $tsdirhl/TSs/tslist_screened
 }
 
 function screen_min_hl {
-echo  $natom > mingeom
-echo '' >> mingeom
-echo "$geom" >> mingeom
+echo  $natom > mingeom.xyz
+echo '' >> mingeom.xyz
+echo "$geom" >> mingeom.xyz
 echo "1" $natom > sprint.dat
-createMat.py mingeom 3 $nA
+createMat.py mingeom.xyz 3 $nA
 cat ConnMat >> sprint.dat
 sprint2.exe <sprint.dat >sprint.out
 
-paste <(awk 'NF==4{print $1}' mingeom) <(deg.sh) >deg.out
+paste <(awk 'NF==4{print $1}' mingeom.xyz) <(deg.sh) >deg.out
 deg_form.sh > deg_form.out
 ##use absolute energy instead of relative one
 echo $energy >> $tsdirhl/MINs/${name}_data

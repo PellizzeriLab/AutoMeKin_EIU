@@ -1,7 +1,7 @@
 #!/bin/bash
 source utils.sh
 #On exit remove tmp files
-tmp_files=(ConnMat deg_bo deg* fort.* intern.dat intern.out intern* mingeom ScatMat ts_tors* ScalMat *_opt.* tors.* geomts_tors0 geomts_tors geom* tmp_gauss tmp* dihedrals tors_qcore.* ts.dat ts.xyz min.xyz freq.molden bond_order.txt bo.out bo.*)
+tmp_files=(ConnMat deg_bo deg* fort.* intern.dat intern.out intern* mingeom.xyz ScatMat ts_tors* ScalMat *_opt.* tors.* geomts_tors0 geomts_tors geom* tmp_gauss tmp* dihedrals tors_qcore.* ts.dat ts.xyz min.xyz freq.molden bond_order.txt bo.out bo.*)
 trap 'err_report2 $LINENO $gauss_line' ERR
 trap cleanup EXIT INT
 
@@ -102,20 +102,20 @@ for min in $(awk '{print $1}' $tmpti)
 do
    printf "\n=====MIN: %4s =====\n" $min
    names="MIN"$min
-   echo $natom > mingeom
-   echo ""    >> mingeom
+   echo $natom > mingeom.xyz
+   echo ""    >> mingeom.xyz
    if [ "$min" == "min0" ]; then
       if [ "$program_opt" = "qcore" ]; then
-         awk '/Final structure/{flag=1; next} EOF{flag=0} flag' ${molecule}_freq.out >> mingeom
+         awk '/Final structure/{flag=1; next} EOF{flag=0} flag' ${molecule}_freq.out >> mingeom.xyz
       else
-         get_geom_mopac.sh ${molecule}_freq.out | awk 'NF==4{print $0}' >> mingeom
+         get_geom_mopac.sh ${molecule}_freq.out | awk 'NF==4{print $0}' >> mingeom.xyz
       fi
    else
-      sqlite3 $tsdirll/MINs/SORTED/mins.db "select geom from mins where name='$names'" >> mingeom
+      sqlite3 $tsdirll/MINs/SORTED/mins.db "select geom from mins where name='$names'" >> mingeom.xyz
    fi
    bond_order.py
-   get_geom_mopac.sh bo.out  >mingeom 
-   createMat.py mingeom 1 $nA
+   get_geom_mopac.sh bo.out  >mingeom.xyz 
+   createMat.py mingeom.xyz 1 $nA
    if [ "$do_di" = "all" ]; then
       awk '{si=0;for(i=1;i<=NF;i++) {si+=$i;if(i==NF) print si,$0 }}' ConnMat > deg_bo
       awk '{for(i=1;i<=NF;i++) bo[i]=$i }
@@ -169,7 +169,7 @@ do
       labels=$(echo "$lr $l1 $l2 $l3" | awk '{print $1","$2","$3","$4}')  
       echo "Running the TS search for tors $itor around bond: $l1"-"$l2"
       # check if the bond belong to a ring, in which case,skip
-      if [ "$(cyclic_graph.py mingeom $l1 $l2)" = "True" ]; then 
+      if [ "$(cyclic_graph.py mingeom.xyz $l1 $l2)" = "True" ]; then 
          echo Rotation of a bond that belongs to a ring
          echo Skiping this dihedral...
          continue 
@@ -177,7 +177,7 @@ do
       if [ $l1 -gt $lr ]; then ((l1=l1-1)) ; fi
       if [ $l2 -gt $lr ]; then ((l2=l2-1)) ; fi
       if [ $l3 -gt $lr ]; then ((l3=l3-1)) ; fi
-      cp mingeom intern.dat
+      cp mingeom.xyz intern.dat
       awk 'NR=='$itor'{print $0}' dihedrals >>intern.dat
       intern.exe <intern.dat>intern.out
       if [ $(awk 'BEGIN{fok=1};/Abort/{fok=0};END{print fok}' intern.out) -eq 0 ]; then 
@@ -193,7 +193,7 @@ do
             rm -rf min_opt.xyz
             dihed=$(echo "scale=2; $dihed0+($idihed-1)*10" | bc)
             sed 's/labels/'"$labels"'/;s/carga/'$charge'/;s/value_dihed/'$dihed'/' ${sharedir}/scan_tors > tors_qcore.dat
-            cp mingeom  min.xyz
+            cp mingeom.xyz  min.xyz
             entos.py tors_qcore.dat > tors_qcore.out
             if [ -f min_opt.xyz ]; then
                echo "  VARIABLE        FUNCTION" >> tors.out 
@@ -206,7 +206,7 @@ do
       else
          internlastatom="$(awk '{print $1,$2,$3,$4," 0 ",$6,$7,'$l1','$l2','$l3'}' intern.out)"
          sed 's/method/'"$method"' charge='$charge'/g' $sharedir/path_template >tors.mop
-         cat mingeom | awk 'NF==4{print $0}' | awk '{if(NR!= '$lr') print $0}' >> tors.mop 
+         cat mingeom.xyz | awk 'NF==4{print $0}' | awk '{if(NR!= '$lr') print $0}' >> tors.mop 
          echo "$internlastatom" >> tors.mop
          mopac tors.mop 2>/dev/null
       fi

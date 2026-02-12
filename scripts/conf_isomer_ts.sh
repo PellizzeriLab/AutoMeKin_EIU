@@ -3,7 +3,7 @@ sharedir=${AMK}/share
 
 source utils.sh
 #remove tmp files
-tmp_files=(ConnMat deg.out deg_form.out deg* mingeom ScalMat sprint.out cits c_i_ts fort.* ${working}/*_data ${working}_*diag)
+tmp_files=(ConnMat deg.out deg_form.out deg* mingeom.xyz ScalMat sprint.out cits c_i_ts fort.* ${working}/*_data ${working}_*diag)
 trap 'err_report $LINENO' ERR
 trap cleanup EXIT INT
 
@@ -43,10 +43,10 @@ do
    named=$(echo $name | sed 's/_ts/ ts/' | awk '{print $2}')
    #Create _diag and _data files for $name if they do not exist 
    if [ -z $(sqlite3 ${working}/datats.db "select id from datats where name='$named'") ]; then
-      sqlite3 ${tsdir}/TSs/SORTED/${database}.db "select natom,geom from ${database} where lname='$name'" | sed 's@|@\n\n@g'  >mingeom
-      createMat.py mingeom 1 $nA
+      sqlite3 ${tsdir}/TSs/SORTED/${database}.db "select natom,geom from ${database} where lname='$name'" | sed 's@|@\n\n@g'  >mingeom.xyz
+      createMat.py mingeom.xyz 1 $nA
       echo "1 $natom" | cat - ConnMat | sprint.exe >sprint.out
-      paste <(awk 'NF==4{print $1}' mingeom) <(deg.sh) >deg.out
+      paste <(awk 'NF==4{print $1}' mingeom.xyz) <(deg.sh) >deg.out
       deg_form.sh > deg_form.out
       format.sh $named $working $thdiss
       awk '{if( NR == FNR) {l[NR]=$1;n[NR]=NR/10+1;tne=NR}}
@@ -54,7 +54,7 @@ do
          IGNORECASE = 1
          for(i=1;i<=tne;i++) {if( $1 == l[i]) print n[i]}
         }
-      }' $elements mingeom > ${working}/${named}_diag
+      }' $elements mingeom.xyz > ${working}/${named}_diag
       awk '/Natom/{natom=$2};/Adjace/{for(i=1;i<=natom;i++){getline;print $0}}' sprint.out >> ${working}/${named}_diag
       datas="$(cat ${working}/${named}_data)"
       diags="$(cat ${working}/${named}_diag)"

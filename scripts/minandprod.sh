@@ -2,7 +2,7 @@
 source utils.sh
 sharedir=${AMK}/share
 #remove tmp files
-tmp_files=(mingeom deg* tmp tmp* black_list.out black_list* ConnMat sprint.* ScalMat fort.*)
+tmp_files=(mingeom.xyz deg* tmp tmp* black_list.out black_list* ConnMat sprint.* ScalMat fort.*)
 trap 'err_report $LINENO' ERR
 trap cleanup EXIT INT
 

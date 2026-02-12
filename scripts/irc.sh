@@ -61,7 +61,7 @@ elif [ ! -f ${tsdirll}/ts_mopac_failed ] && [ "$program_opt" = "g16" ]; then
 fi
 ##
 #remove tmp files
-tmp_files=(fort.* tmp_geom tmp* bbfs.* *.arc *.mop coordir mopac.out ConnMat deg.out deg_form.out deg* mingeom ScalMat sprint.out $tsdirll/*_mop.mop $tsdirll/*_mop.arc)
+tmp_files=(fort.* tmp_geom tmp* bbfs.* *.arc *.mop coordir mopac.out ConnMat deg.out deg_form.out deg* mingeom.xyz ScalMat sprint.out $tsdirll/*_mop.mop $tsdirll/*_mop.arc)
 trap 'err_report $LINENO' ERR
 trap cleanup EXIT INT
 
@@ -116,12 +116,12 @@ else
       freq="$(awk '/Freq/{flag=1;next}/Lowest/{flag=0}flag' $tsdirll/MINs/min0.out)"
       sigma=1
    fi
-   echo $natom > mingeom
-   echo "" >> mingeom
-   echo "$geom" >> mingeom
-   createMat.py mingeom 3 $nA
+   echo $natom > mingeom.xyz
+   echo "" >> mingeom.xyz
+   echo "$geom" >> mingeom.xyz
+   createMat.py mingeom.xyz 3 $nA
    echo "1" $natom | cat - ConnMat |  sprint2.exe >sprint.out
-   paste <(awk 'NF==4{print $1}' mingeom) <(deg.sh) >deg.out
+   paste <(awk 'NF==4{print $1}' mingeom.xyz) <(deg.sh) >deg.out
    deg_form.sh > deg_form.out
    echo $e0 > ${tsdirll}/MINs/${name}_data
    format.sh $name ${tsdirll}/MINs ${nfrag_th}

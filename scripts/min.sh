@@ -8,7 +8,7 @@
 
 source utils.sh
 #remove tmp files
-tmp_files=(tmp* batch* min.xyz opt.xyz freq.molden mingeom ScalMat sprint.dat ConnMat fort.*)
+tmp_files=(tmp* batch* min.xyz opt.xyz freq.molden mingeom.xyz ScalMat sprint.dat ConnMat fort.*)
 trap 'err_report $LINENO' ERR
 trap cleanup EXIT INT
 sharedir=${AMK}/share

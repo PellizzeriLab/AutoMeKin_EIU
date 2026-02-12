@@ -4,7 +4,7 @@
 sharedir=${AMK}/share
 source utils.sh
 #remove tmp files
-tmp_files=(deg.out deg_form.out deg* ConnMat labels mingeom ScalMat sprint.out)
+tmp_files=(deg.out deg_form.out deg* ConnMat labels mingeom.xyz ScalMat sprint.out)
 trap 'err_report $LINENO' ERR
 trap cleanup2 EXIT INT
 
@@ -23,10 +23,10 @@ number=$(echo $2 | sed 's/_/ _ /;s/frag/frag /' | awk '{print $2}')
 name=$(echo $2 | sed 's/_/ _ /;s/frag/frag /' | awk '{print $4}')
 working=$3
 
-echo $natom > mingeom
-echo ''>> mingeom
-cat $1 >> mingeom
-createMat.py mingeom 1
+echo $natom > mingeom.xyz
+echo ''>> mingeom.xyz
+cat $1 >> mingeom.xyz
+createMat.py mingeom.xyz 1
 
 echo "1 $natom" | cat - ConnMat | sprint.exe >sprint.out
 
@@ -39,7 +39,7 @@ awk '{if( NR == FNR) {l[NR]=$1;n[NR]=NR/10+1;tne=NR}}
       i++
       }
   }
-}' $elements mingeom > tmp_wrk
+}' $elements mingeom.xyz > tmp_wrk
 awk '/Natom/{natom=$2}
 /Adjace/{i=1
 while(i<=natom){
@@ -49,7 +49,7 @@ while(i<=natom){
   }
 }' sprint.out >>tmp_wrk
 
-paste <(awk 'NF==4{print $1}' mingeom) <(deg.sh) >deg.out
+paste <(awk 'NF==4{print $1}' mingeom.xyz) <(deg.sh) >deg.out
 deg_form.sh > deg_form.out
 format.sh $2 $working $thdiss
 echo $2 "data" >>  $working/fraglist_screened

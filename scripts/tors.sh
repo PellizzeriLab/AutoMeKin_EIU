@@ -113,7 +113,7 @@ do
    else
       sqlite3 $tsdirll/MINs/SORTED/mins.db "select geom from mins where name='$names'" >> mingeom.xyz
    fi
-   bond_order.py
+   python3 ${AMK}/scripts/bond_order.py
    get_geom_mopac.sh bo.out  >mingeom.xyz 
    createMat.py mingeom.xyz 1 $nA
    if [ "$do_di" = "all" ]; then

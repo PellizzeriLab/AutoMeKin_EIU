@@ -1,0 +1,11 @@
+--Link1--
+%chk=chkfile
+%mem=MemGB
+#p level1 freq=noraman geom=check guess=read iop
+temperature=tkmc
+IOP(2/17=4) pseudo
+nosymm
+
+freq calc
+
+charge mult

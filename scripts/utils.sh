@@ -1156,7 +1156,7 @@ function g09_input {
       else 
          calmr="$(sed 's@Mem@'$mem'@;s@pseudo@'$pseudo'@;s/ts,noeigentest,//;s/tkmc/'$temperature'/;s@level1@'$level1' pop=(mk,nbo)@;s/charge/'$charge'/;s/mult/'$mult'/;s@iop@'"$iop"'@' $sharedir/hl_input_template)"
       fi
-      calsnoiop="$(sed 's@Mem@'$mem'@;s@pseudo@'$pseudo'@;s@level1@'$level1' sp pop=(mk,nbo)@;s/charge/'$charge'/;s/mult/'$mult'/;/opt/,/temp/d' $sharedir/hl_input_template)"
+      calsnoiop="$(sed 's@Mem@'$mem'@;s@pseudo@'$pseudo'@;s@level1@'$level1' sp pop=(mk,nbo)@;s/ opt=(ts,noeigentest,calcall,noraman)//;s/ iop//;/^temperature=/d;s/charge/'$charge'/;s/mult/'$mult'/' $sharedir/hl_input_template)"
       calsiop="$(sed 's@Mem@'$mem'@;s@pseudo@'$pseudo'@;s/opt=(ts,noeigentest,calcall,noraman)//;s@level1@'$level1' sp pop=(mk,nbo)@;s/charge/'$charge'/;s/mult/'$mult'/;/temp/d;s@iop@'"$iop"'@' $sharedir/hl_input_template)"
       if [ $(nfrag.sh tmp_geomf_$i ${nfrag_th} $nA) -eq 1 ]; then
          calf="$calmf"

@@ -3,7 +3,10 @@ cd "$2"
 name="$(sqlite3 inputs.db "select name from gaussian where id=$1")"
 inp="$(sqlite3 inputs.db "select input from gaussian where id=$1")"
 echo -e "$inp\n\n" > ${name}.com
-if [ "$inp" != "salir" ]; then
+if [[ "$inp" == duplicate:* ]]; then
+   orig="${inp#duplicate:}"
+   ln -sf ${orig}.log ${name}.log
+elif [ "$inp" != "salir" ]; then
    if [ "$3" = "g09" ];then
       g09 <${name}.com &>${name}.log
       t=$(awk 'BEGIN{t=0};/Error termination via/{t=1};END{print t}' ${name}.log)

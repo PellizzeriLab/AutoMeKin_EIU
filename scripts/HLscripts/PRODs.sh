@@ -140,10 +140,14 @@ do
          fi
       else
          if [ $nl -gt 2 ]; then
-            fra=$(awk 'END{print $NF}' $working/fraglist)
-            inp_hl="duplicate:$fra"
+            fra=$(awk 'END{if(NF>=3) print $NF}' $working/fraglist)
+            if [ -n "$fra" ]; then
+               inp_hl="duplicate:$fra"
+            else
+               inp_hl="salir"
+            fi
          else
-            inp_hl="$(echo salir)"
+            inp_hl="salir"
          fi
       fi
       echo -e "insert into gaussian values (NULL,'$nn','$inp_hl');\n.quit" | sqlite3 ${dir}/inputs.db

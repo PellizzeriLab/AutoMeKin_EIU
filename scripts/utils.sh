@@ -1315,13 +1315,10 @@ function get_data_hl_output_mins {
 if [ "$program_hl" = "g09" ] || [ "$program_hl" = "g16" ] ;then
    energy=$(get_energy_g09_$HLcalc.sh $i $noHLcalc)
    geom="$(get_geom_g09.sh $i)"
-   if [ $name != "min0" ]; then
-      zpe=$(get_ZPE_g09.sh $i)
-      g=$(get_G_g09.sh $i)
-      freq="$(get_freq_g09.sh $i)"
-# insert all minima except min0
-      sqlite3 ${tsdirhl}/MINs/minhl.db "insert or ignore into minhl (natom,name,energy,zpe,g,geom,freq) values ($natom,'$name',$energy,$zpe,$g,'$geom','$freq');"
-   fi
+   zpe=$(get_ZPE_g09.sh $i)
+   g=$(get_G_g09.sh $i)
+   freq="$(get_freq_g09.sh $i)"
+   sqlite3 ${tsdirhl}/MINs/minhl.db "insert or ignore into minhl (natom,name,energy,zpe,g,geom,freq) values ($natom,'$name',$energy,$zpe,$g,'$geom','$freq');"
 elif [ "$program_hl" = "qcore" ];then
    energy=$(awk 'NR==1{print $2}' $i)
    if [ -f ${tsdirhl}/IRC/${name}_opt.xyz ]; then
@@ -1330,12 +1327,10 @@ elif [ "$program_hl" = "qcore" ];then
       xyz=${tsdirhl}/IRC/${name}.xyz
    fi
    geom="$(awk 'NR>2{print $0}' $xyz )"
-   if [ $name != "min0" ]; then
-      zpe=$(awk '/ZPE/{printf "%12.2f",$2*627.51}' $i)
-      g=$(awk '/Gibbs free energy/{print $4}' $i)
-      freq="$(awk '/Freq/{for(i=1;i<=1000;i++) {getline;if(NF>1) exit;print $1}}' $i)"
-      sqlite3 ${tsdirhl}/MINs/minhl.db "insert or ignore into minhl (natom,name,energy,zpe,g,geom,freq) values ($natom,'$name',$energy,$zpe,$g,'$geom','$freq');"
-   fi
+   zpe=$(awk '/ZPE/{printf "%12.2f",$2*627.51}' $i)
+   g=$(awk '/Gibbs free energy/{print $4}' $i)
+   freq="$(awk '/Freq/{for(i=1;i<=1000;i++) {getline;if(NF>1) exit;print $1}}' $i)"
+   sqlite3 ${tsdirhl}/MINs/minhl.db "insert or ignore into minhl (natom,name,energy,zpe,g,geom,freq) values ($natom,'$name',$energy,$zpe,$g,'$geom','$freq');"
 fi
 }
 

@@ -36,19 +36,30 @@ if [ $imin == "ask" ]; then
 fi
 if [ $imin == "min0" ]; then
    minn=$(awk '/min0/{print $2}' $tsdirhl/MINs/SORTED/MINlist_sorted)
-   imin=$(awk 'BEGIN{min='$minn'}
-   {for(i=1;i<=NF;i++) {m[NR,i]=$i;iso[NR]=NF}
-   j=1
-   while(j<=iso[NR]){
-      if('$minn'==m[NR,j]) min=m[NR,1]
-      j++
+   if [ -s $tsdirhl/working/conf_isomer.out ]; then
+      imin=$(awk 'BEGIN{min='$minn'}
+      {for(i=1;i<=NF;i++) {m[NR,i]=$i;iso[NR]=NF}
+      j=1
+      while(j<=iso[NR]){
+         if('$minn'==m[NR,j]) min=m[NR,1]
+         j++
+         }
       }
-   }
-   END{print min}' $tsdirhl/working/conf_isomer.out )
+      END{print min}' $tsdirhl/working/conf_isomer.out )
+   fi
+   if [ -z "$imin" ]; then
+      echo "conf_isomer.out not found or cannot map min0; using numeric min label $minn"
+      imin=$minn
+   fi
 fi
 
 
 
+
+if [ -z "$imin" ]; then
+   echo "Starting minimum could not be determined. Please set imin in amk.dat or regenerate conf_isomer.out."
+   exit 1
+fi
 
 if [ -f $tsdirhl/KMC/$rxnfile ]; then
    echo "RXNfile is: "$tsdirhl"/KMC/"$rxnfile

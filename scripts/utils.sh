@@ -1184,8 +1184,11 @@ function g09_input {
          fi
       fi
 
-      inp_hlminf="$(echo -e "$chkf"'\n'"$calf"'\n'"$geof"'\n'" "'\n'"$pseudo_end")"
-      inp_hlminr="$(echo -e "$chkr"'\n'"$calr"'\n'"$geor"'\n'" "'\n'"$pseudo_end")"
+      cal_freq_f="$(sed 's/chkfile/'$chkfilef'/;s@Mem@'$mem'@;s@pseudo@'$pseudo'@;s/tkmc/'$temperature'/;s@iop@'"$iop"'@;s@level1@'$levelc'@;s/charge/'$charge'/;s/mult/'$mult'/' $sharedir/freq_template_link1_gaussian)"
+      cal_freq_r="$(sed 's/chkfile/'$chkfiler'/;s@Mem@'$mem'@;s@pseudo@'$pseudo'@;s/tkmc/'$temperature'/;s@iop@'"$iop"'@;s@level1@'$levelc'@;s/charge/'$charge'/;s/mult/'$mult'/' $sharedir/freq_template_link1_gaussian)"
+
+      inp_hlminf="$(echo -e "$chkf"'\n'"$calf"'\n'"$geof"'\n\n'"$cal_freq_f"'\n'" "'\n'"$pseudo_end")"
+      inp_hlminr="$(echo -e "$chkr"'\n'"$calr"'\n'"$geor"'\n\n'"$cal_freq_r"'\n'" "'\n'"$pseudo_end")"
 
       if [ $noHLcalc -eq 2 ]; then
          spcf="$(sed 's/chk=/chk='$chkfilef'/;s@level2@'$level2'@;s/charge/'$charge'/;s/mult/'$mult'/' $sharedir/sp_template)"
@@ -1315,10 +1318,13 @@ function get_data_hl_output_mins {
 if [ "$program_hl" = "g09" ] || [ "$program_hl" = "g16" ] ;then
    energy=$(get_energy_g09_$HLcalc.sh $i $noHLcalc)
    geom="$(get_geom_g09.sh $i)"
-   zpe=$(get_ZPE_g09.sh $i)
-   g=$(get_G_g09.sh $i)
-   freq="$(get_freq_g09.sh $i)"
-   sqlite3 ${tsdirhl}/MINs/minhl.db "insert or ignore into minhl (natom,name,energy,zpe,g,geom,freq) values ($natom,'$name',$energy,$zpe,$g,'$geom','$freq');"
+   if [ $name != "min0" ]; then
+      zpe=$(get_ZPE_g09.sh $i)
+      g=$(get_G_g09.sh $i)
+      freq="$(get_freq_g09.sh $i)"
+# insert all minima except min0
+      sqlite3 ${tsdirhl}/MINs/minhl.db "insert or ignore into minhl (natom,name,energy,zpe,g,geom,freq) values ($natom,'$name',$energy,$zpe,$g,'$geom','$freq');"
+   fi
 elif [ "$program_hl" = "qcore" ];then
    energy=$(awk 'NR==1{print $2}' $i)
    if [ -f ${tsdirhl}/IRC/${name}_opt.xyz ]; then
@@ -1327,10 +1333,12 @@ elif [ "$program_hl" = "qcore" ];then
       xyz=${tsdirhl}/IRC/${name}.xyz
    fi
    geom="$(awk 'NR>2{print $0}' $xyz )"
-   zpe=$(awk '/ZPE/{printf "%12.2f",$2*627.51}' $i)
-   g=$(awk '/Gibbs free energy/{print $4}' $i)
-   freq="$(awk '/Freq/{for(i=1;i<=1000;i++) {getline;if(NF>1) exit;print $1}}' $i)"
-   sqlite3 ${tsdirhl}/MINs/minhl.db "insert or ignore into minhl (natom,name,energy,zpe,g,geom,freq) values ($natom,'$name',$energy,$zpe,$g,'$geom','$freq');"
+   if [ $name != "min0" ]; then
+      zpe=$(awk '/ZPE/{printf "%12.2f",$2*627.51}' $i)
+      g=$(awk '/Gibbs free energy/{print $4}' $i)
+      freq="$(awk '/Freq/{for(i=1;i<=1000;i++) {getline;if(NF>1) exit;print $1}}' $i)"
+      sqlite3 ${tsdirhl}/MINs/minhl.db "insert or ignore into minhl (natom,name,energy,zpe,g,geom,freq) values ($natom,'$name',$energy,$zpe,$g,'$geom','$freq');"
+   fi
 fi
 }
 

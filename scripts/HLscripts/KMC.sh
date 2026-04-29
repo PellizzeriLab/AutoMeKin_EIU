@@ -30,13 +30,17 @@ fi
 
 
 
-if [ $imin == "ask" ]; then
+if [ "$imin" == "ask" ]; then
    echo -n "Provide the label of the starting minimum: "
    read imin
 fi
-if [ $imin == "min0" ]; then
+if [ "$imin" == "min0" ]; then
    minn=$(awk '/min0/{print $2}' $tsdirhl/MINs/SORTED/MINlist_sorted)
-   if [ -s $tsdirhl/working/conf_isomer.out ]; then
+   if [ -z "$minn" ]; then
+      echo "Cannot find min0 in $tsdirhl/MINs/SORTED/MINlist_sorted"
+      exit 1
+   fi
+   if [ -s "$tsdirhl/working/conf_isomer.out" ]; then
       imin=$(awk 'BEGIN{min='$minn'}
       {for(i=1;i<=NF;i++) {m[NR,i]=$i;iso[NR]=NF}
       j=1
@@ -45,7 +49,7 @@ if [ $imin == "min0" ]; then
          j++
          }
       }
-      END{print min}' $tsdirhl/working/conf_isomer.out )
+      END{print min}' "$tsdirhl/working/conf_isomer.out" )
    fi
    if [ -z "$imin" ]; then
       echo "conf_isomer.out not found or cannot map min0; using numeric min label $minn"

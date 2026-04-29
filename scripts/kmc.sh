@@ -24,13 +24,17 @@ units=1e-12
 rxnfile=$(awk 'BEGIN{suf="_long.cg_groupedprods"};/PathInfo/{if($2=="Relevant") suf=".relevant"};END{print "RXNet"suf}' $inputfile )
 
 
-if [ $imin == "ask" ]; then
+if [ "$imin" == "ask" ]; then
    echo -n "Provide the label of the starting minimum: "
    read imin
 fi
-if [ $imin == "min0" ]; then
+if [ "$imin" == "min0" ]; then
    minn=$(awk '/min0/{print $2}' $tsdirll/MINs/SORTED/MINlist_sorted)
-   if [ -s $tsdirll/working/conf_isomer.out ]; then
+   if [ -z "$minn" ]; then
+      echo "Cannot find min0 in $tsdirll/MINs/SORTED/MINlist_sorted"
+      exit 1
+   fi
+   if [ -s "$tsdirll/working/conf_isomer.out" ]; then
       imin=$(awk 'BEGIN{min='$minn'}
       {for(i=1;i<=NF;i++) {m[NR,i]=$i;iso[NR]=NF}
       j=1
@@ -39,7 +43,7 @@ if [ $imin == "min0" ]; then
          j++
          }
       }
-      END{print min}' $tsdirll/working/conf_isomer.out )
+      END{print min}' "$tsdirll/working/conf_isomer.out" )
    fi
    if [ -z "$imin" ]; then
       echo "conf_isomer.out not found or cannot map min0; using numeric min label $minn"
@@ -48,7 +52,12 @@ if [ $imin == "min0" ]; then
 fi
 
 if [ -z "$imin" ]; then
-   echo "Starting minimum could not be determined. Please set imin in amk.dat or regenerate conf_isomer.out."
+   echo "Starting minimum could not be determined."
+   echo "Please set 'imin' in amk.dat using one of these formats:"
+   echo "  imin ask    # prompt for the starting minimum label"
+   echo "  imin min0   # use the minimum corresponding to min0"
+   echo "  imin 12     # use a specific minimum label/number"
+   echo "Then rerun the script, or regenerate conf_isomer.out if imin=min0 cannot be mapped."
    exit 1
 fi
 

@@ -5,7 +5,12 @@ inp="$(sqlite3 inputs.db "select input from gaussian where id=$1")"
 echo -e "$inp\n\n" > ${name}.com
 if [[ "$inp" == duplicate:* ]]; then
    orig="${inp#duplicate:}"
-   ln -sf ${orig}.log ${name}.log
+   if [[ "$orig" =~ ^[A-Za-z0-9._-]+$ ]] && [[ "$orig" != *".."* ]]; then
+      ln -sf -- "${orig}.log" "${name}.log"
+   else
+      echo "Invalid duplicate source: $orig" >&2
+      exit 1
+   fi
 elif [ "$inp" != "salir" ]; then
    if [ "$3" = "g09" ];then
       g09 <${name}.com &>${name}.log

@@ -5,6 +5,10 @@ tmp_files=(ConnMat deg_bo deg* fort.* intern.dat intern.out intern* mingeom.xyz 
 trap 'err_report2 $LINENO $gauss_line' ERR
 trap cleanup EXIT INT
 
+is_number() {
+  [[ $1 =~ ^[+-]?[0-9]+([.][0-9]+)?([eE][+-]?[0-9]+)?$ ]]
+}
+
 #Paths and names
 cwd=$PWD
 sharedir=${AMK}/share
@@ -203,8 +207,15 @@ do
          echo Skiping this dihedral...
          continue 
       fi
-      dihed0=$(awk '{print $6}' intern.out)
+      dihed0=$(awk 'NF>=6{print $6; exit}' intern.out)
       if [ "$program_opt" = "qcore" ];then
+         if [ -z "$dihed0" ] || ! is_number "$dihed0"; then
+            echo "ERROR: invalid torsion reference angle from intern.out"
+            echo "intern.out contents:"
+            sed -n '1,40p' intern.out
+            echo "Skipping this dihedral"
+            continue
+         fi
          for idihed in $(seq 36)
          do
             if [ $idihed -eq 1 ]; then echo "POTENTIAL ENERGY SURFACE SCAN" > tors.out  ; fi
@@ -312,6 +323,9 @@ do
          elif [[ ("$fi" -eq -4) ]]; then
             printf "     Pt%2s: failed-->EF algorithm was unable to optimize a TS\n" $inmax 
             continue
+         elif [ -z "$ei" ] || [ -z "$emaxts" ] || ! is_number "$ei" ] || ! is_number "$emaxts" ]; then
+            echo "WARNING: invalid energy comparison for TS $inmax: ei='$ei' emaxts='$emaxts'"
+            echo "Skipping threshold test. If this is unexpected, check get_ts_properties.sh output and emaxts initialization."
          elif (( $(echo "$ei > $emaxts" |bc -l) )); then
             printf "     Pt%2s: TS optimized but not added-->E=%20s > %20s \n" $inmax $ei $emaxts
             continue

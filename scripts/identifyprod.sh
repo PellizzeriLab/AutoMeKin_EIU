@@ -27,7 +27,19 @@ nlprlist=$(wc -l $tsdirll/PRODs/PRlist | awk '{print $1}')
 if [ $nlprlist -eq 1 ];then
    echo "No products for this system"
    minn0=$(awk '/min0/{print $2}' $tsdirll/MINs/SORTED/MINlist_sorted)
-   minn=$(awk 'BEGIN{minn='$minn0'};/ '$minn0' /{minn=$1};END{print minn}' $tsdirll/working/conf_isomer.out)
+   if [ -z "$minn0" ]; then
+      echo "ERROR: cannot find min0 in $tsdirll/MINs/SORTED/MINlist_sorted"
+      exit 1
+   fi
+   if [ -s "$tsdirll/working/conf_isomer.out" ]; then
+      minn=$(awk -v min0="$minn0" 'BEGIN{min=min0} {for(i=1;i<=NF;i++) if($i==min0) min=$1} END{print min}' $tsdirll/working/conf_isomer.out)
+   else
+      minn=$minn0
+   fi
+   if [ -z "$minn" ]; then
+      echo "WARNING: could not map min0 to a starting minimum in $tsdirll/working/conf_isomer.out; using $minn0"
+      minn=$minn0
+   fi
    if [ $(awk 'BEGIN{nts=0};{if($1=="TS") ++nts};END{print nts}' $tsdirll/KMC/RXNet_long.cg ) -eq 0 ]; then 
       echo "No connected paths found (RXNet_long.cg is empty)"
    else
@@ -88,7 +100,19 @@ cat $tsdirll/PRODs/PRlist_kmc.log $tsdirll/KMC/RXNet_long.cg | awk '/PROD/{if(NF
 }' >tmp
 
 minn0=$(awk '/min0/{print $2}' $tsdirll/MINs/SORTED/MINlist_sorted)
-minn=$(awk 'BEGIN{minn='$minn0'};/ '$minn0' /{minn=$1};END{print minn}' $tsdirll/working/conf_isomer.out)
+if [ -z "$minn0" ]; then
+   echo "ERROR: cannot find min0 in $tsdirll/MINs/SORTED/MINlist_sorted"
+   exit 1
+fi
+if [ -s "$tsdirll/working/conf_isomer.out" ]; then
+   minn=$(awk -v min0="$minn0" 'BEGIN{min=min0} {for(i=1;i<=NF;i++) if($i==min0) min=$1} END{print min}' $tsdirll/working/conf_isomer.out)
+else
+   minn=$minn0
+fi
+if [ -z "$minn" ]; then
+   echo "WARNING: could not map min0 to a starting minimum in $tsdirll/working/conf_isomer.out; using $minn0"
+   minn=$minn0
+fi
 
 if [ $(awk 'BEGIN{nts=0};{if($1=="TS") ++nts};END{print nts}' $tsdirll/KMC/RXNet_long.cg ) -eq 0 ]; then 
    echo "No connected paths found (RXNet_long.cg is empty)"

@@ -37,6 +37,17 @@ else
 fi
 kmc.sh
 natom=$(sqlite3 tsdir${tag}_${molecule}/MINs/min.db "select natom from min where id=1")
+if [ -z "$natom" ]; then
+   natom=$(sqlite3 tsdir${tag}_${molecule}/MINs/min.db "select natom from min where name='min0_0' limit 1")
+fi
+if [ -z "$natom" ] && [ -f ${molecule}_ref.xyz ]; then
+   natom=$(awk 'NR==1{print $1}' ${molecule}_ref.xyz)
+fi
+if [ -z "$natom" ]; then
+   echo "ERROR: cannot determine number of atoms for barrierless insertion."
+   echo "       Check tsdir${tag}_${molecule}/MINs/min.db and ${molecule}_ref.xyz"
+   exit 1
+fi
 echo Number of atoms: $natom
 ###
 

@@ -39,8 +39,13 @@ def get_G_index(rmol,weig,na,prt):
 
 if __name__ == '__main__':
     cm = open('ConnMat', "w") ; sm = open('ScalMat', "w")
-    rmol = read(str(argv[1]))
+    try:
+        rmol = read(str(argv[1]))
+    except Exception as err:
+        raise SystemExit(f"createMat.py: failed to read '{argv[1]}': {err}")
     if len(argv) == 4: na = int(argv[3])
-    else: na = len(rmol) 
+    else: na = len(rmol)
+    if len(rmol) != na:
+        raise SystemExit(f"createMat.py: file '{argv[1]}' contains {len(rmol)} atoms, expected {na}")
     if len(rmol) == 1: cm.write('0\n')
     else: get_G_index(rmol,int(argv[2]),na,True)

@@ -41,15 +41,9 @@ if [ "$imin" == "min0" ]; then
       exit 1
    fi
    if [ -s "$tsdirhl/working/conf_isomer.out" ]; then
-      imin=$(awk 'BEGIN{min='$minn'}
-      {for(i=1;i<=NF;i++) {m[NR,i]=$i;iso[NR]=NF}
-      j=1
-      while(j<=iso[NR]){
-         if('$minn'==m[NR,j]) min=m[NR,1]
-         j++
-         }
-      }
-      END{print min}' "$tsdirhl/working/conf_isomer.out" )
+      imin=$(awk -v min0="$minn" 'BEGIN{min=min0} {for(i=1;i<=NF;i++) if($i==min0) min=$1} END{print min}' "$tsdirhl/working/conf_isomer.out" )
+   else
+      imin=$minn
    fi
    if [ -z "$imin" ]; then
       echo "conf_isomer.out not found or cannot map min0; using numeric min label $minn"

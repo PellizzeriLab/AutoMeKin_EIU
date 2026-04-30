@@ -12,6 +12,11 @@ sharedir=${AMK}/share
 cwd=$PWD
 exe="IRC.sh"
 source utils.sh
+
+is_float() {
+  [[ $1 =~ ^[+-]?[0-9]+([.]?[0-9]+)?([eE][+-]?[0-9]+)?$ ]]
+}
+
 #On exit remove tmp files
 tmp_files=(black* ConnMat deg* labels mingeom.xyz ScalMat sprint.out tmp* screening.log)
 trap cleanup EXIT INT
@@ -100,7 +105,12 @@ for i in $(sqlite3 ${tsdirhl}/TSs/tshl.db "select name from tshl")
 do
   en_ts=$(sqlite3 ${tsdirhl}/TSs/tshl.db "select energy,zpe from tshl where name='$i'" | sed 's@|@ @g' | awk '{printf "%20.10f\n",$1*627.51+$2}')
   deltg="$(echo "$en_min0" "$en_ts" | awk '{printf "%20.10f\n",$2-$1}')"
-  res=$(echo "$deltg < $maxen" | bc )
+  if ! is_float "$deltg" || ! is_float "$maxen"; then
+    echo "WARNING: invalid IRC energy comparison: deltg='$deltg' maxen='$maxen'"
+    res=0
+  else
+    res=$(echo "$deltg < $maxen" | bc )
+  fi
   #if gaussian's irc is not complete, remove output 
   if [ -f ${tsdirhl}/IRC/ircf_${i}.log ] && [ -f ${tsdirhl}/IRC/ircr_${i}.log ]; then  
     if [ $(awk 'BEGIN{c=0};/Job /{c=1};END{print c}' ${tsdirhl}/IRC/ircf_${i}.log) -eq 0 ]; then rm -rf ${tsdirhl}/IRC/ircf_${i}.* ; fi

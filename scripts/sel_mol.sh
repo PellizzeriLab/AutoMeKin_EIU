@@ -15,15 +15,15 @@ confilell=$tsdirll/working/conf_isomer.out
 factor=1.5
 if [ -f $minfilell ] && [ -f $kmcfilell ] && [ $mm -eq 1 ]; then
    minn=$(awk '/min0/{print $2}' $minfilell)
-   minok=$(awk 'BEGIN{min='$minn'}
-   {for(i=1;i<=NF;i++) {m[NR,i]=$i;iso[NR]=NF}
-   j=1
-   while(j<=iso[NR]){
-      if('$minn'==m[NR,j]) min=m[NR,1]
-      j++
-      }
-   }
-   END{print min}' $confilell )
+   if [ -z "$minn" ]; then
+      echo "ERROR: min0 not found in $minfilell"
+      exit 1
+   fi
+   if [ -s "$confilell" ]; then
+      minok=$(awk -v min0="$minn" 'BEGIN{min=min0} {for(i=1;i<=NF;i++) if($i==min0) min=$1} END{print min}' $confilell )
+   else
+      minok=$minn
+   fi
 ###
    if [ $mdc -ge 1 ]; then
       selm=$(awk '{if($3!~/min0/)print $2}' $minfilell | awk 'BEGIN{srand('$srandseed');rn=rand()}

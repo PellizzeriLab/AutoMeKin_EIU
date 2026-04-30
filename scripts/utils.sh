@@ -536,6 +536,13 @@ if [ $sampling -lt 30 ]; then
 ##remove second line if it exists
       awk 'NR==1{natom=$1;print natom"\n";getline
            for(i=1;i<=natom;i++) {getline; print $1,$2,$3,$4} }' ${molecule}.xyz > tmp && mv tmp ${molecule}.xyz 
+      natom=$(awk 'NR==1{print $1}' ${molecule}.xyz)
+      nlines=$(wc -l < ${molecule}.xyz)
+      if [ -z "$natom" ] || [ "$natom" -le 0 ] || [ "$nlines" -lt $((natom+2)) ]; then
+         echo "ERROR: ${molecule}.xyz is malformed or empty"
+         echo "       declared atoms: $natom, file lines: $nlines"
+         exit 1
+      fi
 ##create reference distances : cov
    fi
 else
@@ -559,6 +566,12 @@ else
       xyz_exists=1
       xyzfile=${molecule}
       natom=$(awk 'NR==1{print $1}' ${molecule}.xyz)
+      nlines=$(wc -l < ${molecule}.xyz)
+      if [ -z "$natom" ] || [ "$natom" -le 0 ] || [ "$nlines" -lt $((natom+2)) ]; then
+         echo "ERROR: ${molecule}.xyz is malformed or empty"
+         echo "       declared atoms: $natom, file lines: $nlines"
+         exit 1
+      fi
    else
       xyz_exists=0
       cat ${frA}.xyz ${frB}.xyz | awk '{if(NF==4) print $0}' > tmp_ABe 
@@ -566,6 +579,12 @@ else
       echo $natom > tmp_AB.xyz
       echo "" >> tmp_AB.xyz
       cat tmp_ABe >> tmp_AB.xyz
+      nlines=$(wc -l < tmp_AB.xyz)
+      if [ -z "$natom" ] || [ "$natom" -le 0 ] || [ "$nlines" -lt $((natom+2)) ]; then
+         echo "ERROR: constructed ${molecule}.xyz from fragments is malformed or empty"
+         echo "       declared atoms: $natom, file lines: $nlines"
+         exit 1
+      fi
       xyzfile=tmp_AB
    fi
 ##check_vdw_atoms
@@ -973,6 +992,15 @@ fi
 
 function amk_parallel_setup {
 if [ ! -f ${molecule}_ref.xyz ]; then cp ${molecule}.xyz ${molecule}_ref.xyz ; fi
+if [ -f ${molecule}_ref.xyz ]; then
+   natom_ref=$(awk 'NR==1{print $1}' ${molecule}_ref.xyz)
+   ngeom=$(awk 'NR>2 && NF==4{count++}END{print count+0}' ${molecule}_ref.xyz)
+   if [ -z "$natom_ref" ] || [ "$natom_ref" -le 0 ] || [ "$ngeom" -lt "$natom_ref" ]; then
+      echo "ERROR: ${molecule}_ref.xyz is malformed: declared $natom_ref atoms, found $ngeom coordinate lines"
+      echo "Please check ${molecule}.xyz and ${molecule}_ref.xyz"
+      exit 1
+   fi
+fi
 ###
 if [ -f $kmcfilell ] && [ -f $minfilell ] && [ $mdc -ge 1 ]; then
    awk '{if($1!="temp") print $0}' $inputfile > tmp && mv tmp $inputfile

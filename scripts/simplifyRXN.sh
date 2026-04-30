@@ -62,7 +62,19 @@ cat $tsdir/KMC/RXNet_long.cg_groupedprods tmp_grothzts | awk 'NR<=2{print $0}
 }' > tmp2 
 #Once relevant file has been limited to the most important 100 rxns, make sure those 100 rxns are connected:
 minn0=$(awk '/min0/{print $2}' ${tsdir}/MINs/SORTED/MINlist_sorted)
-minn=$(awk 'BEGIN{minn='$minn0'};/ '$minn0' /{minn=$1};END{print minn}' ${tsdir}/working/conf_isomer.out)
+if [ -z "$minn0" ]; then
+   echo "ERROR: cannot find min0 in ${tsdir}/MINs/SORTED/MINlist_sorted"
+   exit 1
+fi
+if [ -s "${tsdir}/working/conf_isomer.out" ]; then
+   minn=$(awk -v min0="$minn0" 'BEGIN{min=min0} {for(i=1;i<=NF;i++) if($i==min0) min=$1} END{print min}' ${tsdir}/working/conf_isomer.out)
+else
+   minn=$minn0
+fi
+if [ -z "$minn" ]; then
+   echo "WARNING: could not map min0 to starting minimum in ${tsdir}/working/conf_isomer.out; using $minn0"
+   minn=$minn0
+fi
 linked_paths.py tmp2 $minn 1e10  > $tsdir/KMC/RXNet.relevant
 
 

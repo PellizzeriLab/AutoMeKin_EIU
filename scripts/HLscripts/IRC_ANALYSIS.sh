@@ -112,11 +112,17 @@ do
 #Now we screen the list to rename duplicates
   echo $natom > mingeom.xyz
   echo '' >> mingeom.xyz
+  if [ -z "$geom" ]; then
+     echo "ERROR: failed to extract geometry for $name"
+     echo "       skipping $name because geometry could not be parsed"
+     continue
+  fi
   echo "$geom"  >>mingeom.xyz
 ##If the calc. was not done skip this minimum
-  anlf=$(wc -l mingeom.xyz | awk '{print $1}')
-  nlmg=$(($natom+2))
+  anlf=$(wc -l < mingeom.xyz)
+  nlmg=$((natom+2))
   if [ $anlf -lt $nlmg ]; then
+     echo "ERROR: incomplete geometry for $name: got $anlf lines, expected $nlmg"
      echo "Double check this opt: $name"
      continue
   fi

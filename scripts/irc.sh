@@ -79,8 +79,20 @@ if [ -f ${tsdirll}/MINs/min0.out ]; then
 else
    name=min0_0
    if [ "$program_opt" != "qcore" ]; then
-      echo "$min_template"                       > ${molecule}_freq.mop
-      awk 'NR>2{print $0}' ${molecule}_ref.xyz  >> ${molecule}_freq.mop
+      if [ ! -f ${molecule}_ref.xyz ]; then
+         echo "ERROR: ${molecule}_ref.xyz not found"
+         exit 1
+      fi
+      natom_ref=$(awk 'NR==1{print $1}' ${molecule}_ref.xyz)
+      ngeom=$(awk 'NR>2 && NF==4{count++}END{print count+0}' ${molecule}_ref.xyz)
+      if [ -z "$natom_ref" ] || [ "$natom_ref" -le 0 ] || [ "$ngeom" -lt "$natom_ref" ]; then
+         echo "ERROR: malformed ${molecule}_ref.xyz; declared $natom_ref atoms, found $ngeom coordinate lines"
+         echo "Contents of ${molecule}_ref.xyz:"
+         sed -n '1,20p' ${molecule}_ref.xyz
+         exit 1
+      fi
+      echo "$min_template" > ${molecule}_freq.mop
+      awk 'NR>2{print $0}' ${molecule}_ref.xyz >> ${molecule}_freq.mop
       mopac ${molecule}_freq.mop 2>/dev/null
       geom="$(get_geom_mopac.sh ${molecule}_freq.out | awk '{if(NF==4) print $0}')"
       sed 's/thermo/thermo('$temperature','$temperature')/;s/method/'"$method"' charge='$charge'/' $sharedir/thermo_template >  $tsdirll/MINs/min0.mop
@@ -118,7 +130,16 @@ else
    fi
    echo $natom > mingeom.xyz
    echo "" >> mingeom.xyz
+   if [ -z "$geom" ]; then
+      echo "ERROR: failed to extract geometry from ${molecule}_freq.out"
+      echo "       check ${molecule}_freq.out and the mopac output for errors"
+      exit 1
+   fi
    echo "$geom" >> mingeom.xyz
+   if [ $(wc -l < mingeom.xyz) -lt $((natom + 2)) ]; then
+      echo "ERROR: incomplete geometry written to mingeom.xyz (expected $((natom + 2)) lines)"
+      exit 1
+   fi
    createMat.py mingeom.xyz 3 $nA
    echo "1" $natom | cat - ConnMat |  sprint2.exe >sprint.out
    paste <(awk 'NF==4{print $1}' mingeom.xyz) <(deg.sh) >deg.out

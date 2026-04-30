@@ -113,8 +113,26 @@ do
    else
       sqlite3 $tsdirll/MINs/SORTED/mins.db "select geom from mins where name='$names'" >> mingeom.xyz
    fi
+   n_geom=$(awk 'NR>2 && NF==4{count++}END{print count+0}' mingeom.xyz)
+   if [ "$n_geom" -lt "$natom" ]; then
+      echo "ERROR: generated mingeom.xyz contains $n_geom atoms, expected $natom"
+      echo "Contents of mingeom.xyz:" 
+      sed -n '1,20p' mingeom.xyz
+      exit 1
+   fi
    python3 ${AMK}/scripts/bond_order.py
-   get_geom_mopac.sh bo.out  >mingeom.xyz 
+   if [ ! -f bo.out ] || [ ! -s bo.out ]; then
+      echo "ERROR: bond order generation failed, bo.out missing or empty"
+      exit 1
+   fi
+   get_geom_mopac.sh bo.out > mingeom2.xyz
+   if grep -q '^Error$' mingeom2.xyz || [ ! -s mingeom2.xyz ]; then
+      echo "ERROR: bo.out did not produce a valid geometry."
+      echo "Check bo.out contents:"
+      sed -n '1,40p' bo.out
+      exit 1
+   fi
+   mv mingeom2.xyz mingeom.xyz
    createMat.py mingeom.xyz 1 $nA
    if [ "$do_di" = "all" ]; then
       awk '{si=0;for(i=1;i<=NF;i++) {si+=$i;if(i==NF) print si,$0 }}' ConnMat > deg_bo

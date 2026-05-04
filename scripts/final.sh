@@ -126,7 +126,7 @@ cp RXNet0 ${final}/RXNet
 
 awk 'BEGIN{if('$rate'==0) fl="DG"; if('$rate'==1) fl="DE"}
 NR==1{printf " TS #    %2s(kcal/mol)    -------Path info--------\n",fl}
-NR>2{printf "%5.0f %12.3f       %4s %4s %4s %4s %4s\n",$2,$5,$7,$8,$9,$10,$11}' ${tsdirll}/KMC/RXNet.cg >> tmp_RXNet.cg
+NR>2{printf "%2s %4.0f %12.3f       %4s %4s %4s %4s %4s\n",$1,$2,$5,$7,$8,$9,$10,$11}' ${tsdirll}/KMC/RXNet.cg >> tmp_RXNet.cg
 if [ -f ${tsdirll}/PRODs/PRlist_kmc ];then
    awk 'NR>1{for(i=1;i<NF;i++) if(i!=3) printf $i " ";print $NF}' ${tsdirll}/PRODs/PRlist_kmc >> tmp_RXNet.cg 
 fi
@@ -266,13 +266,13 @@ done
 kmcfile=${tsdirll}/KMC/kmc${postb}.out 
 brafile=${tsdirll}/KMC/branching${postb}.out
 
-if [ -f $kmcfile ]; then
-   cat $brafile >$final/kinetics$postb
-   echo "" >> $final/kinetics$postb
-   echo "Population of each species as a function of time" >>$final/kinetics$postb
-   echo "++++++++++++++++++++++++++++++++++++++++++++++++" >>$final/kinetics$postb
+if [ -f "$kmcfile" ] && [ -f "$brafile" ]; then
+   cat "$brafile" >"$final/kinetics$postb"
+   echo "" >> "$final/kinetics$postb"
+   echo "Population of each species as a function of time" >>"$final/kinetics$postb"
+   echo "++++++++++++++++++++++++++++++++++++++++++++++++" >>"$final/kinetics$postb"
    awk '{line[NR]=$0};/Calculation number/{fdata=NR+1};/Population/{ldata=NR}
-   END{for(i=fdata;i<ldata;i++) print line[i]}' $kmcfile >tmp_kmc
+   END{for(i=fdata;i<ldata;i++) print line[i]}' "$kmcfile" >tmp_kmc
    npro=$(awk 'BEGIN{npro=0};NR>1{++npro};END{print npro}' $brafile)
    pro="$(awk 'NR>1{j=0;for(i=NF-'$npro'+1;i<=NF;i++) {++j;if($i>0) l[j]=1}};END{for(i=1;i<='$npro';i++) if(l[i]==1) printf "%8s ",i}' tmp_kmc)"
    min="$(awk 'NR>1{nmin=NF-'$npro'-1;j=0;for(i=2;i<=NF-'$npro';i++) {++j;if($i>0) l[j]=1}};END{for(i=1;i<=nmin;i++) if(l[i]==1) printf "%8s ",i}' tmp_kmc)"
@@ -300,9 +300,9 @@ if [ -f $kmcfile ]; then
    for(i=1;i<=npro;i++) {printf "%20s ",$(NF-ntpro+ipro[i])}
    print ""
    }
-   }' tmp_kmc0 tmp_kmc >> $final/kinetics$postb
+   }' tmp_kmc0 tmp_kmc >> "$final/kinetics$postb"
    ###Making plot. A max of 1e5 lines in the file are allowed and only 20 intermediates/products are printed
-   awk 'BEGIN{p=0};/Time/{p=1};{if($1!~/Time/ && p==1) print $0}' ${final}/kinetics$postb > tmp_pop_data
+   awk 'BEGIN{p=0};/Time/{p=1};{if($1!~/Time/ && p==1) print $0}' "$final/kinetics$postb" > tmp_pop_data
    np=$(awk 'NR==1{print NF-1;exit}' tmp_pop_data)
    npoints=20
    if [ $np -lt 20 ]; then npoints=$np ; fi
@@ -337,6 +337,8 @@ if [ -f $kmcfile ]; then
    #if [ -f diagram.gnu ]; then
    #   mv diagram.gnu ${final}/Energy_profile.gnu
    #fi
+else
+   echo "WARNING: missing KMC output; skipping LL kinetics generation ($kmcfile or $brafile not present)" >&2
 fi
 nx.sh LL
 ##Adding barrless to rxn_all.txt
@@ -365,6 +367,9 @@ if [ -f ${tsdirll}/KMC/RXNet.relevant ]; then
      else
         print $0
    }' tmp_rel $file | sed 's@CONN@@g' > ${final}/RXNet.rel
+elif [ -f ${final}/RXNet.cg ]; then
+   echo "WARNING: ${tsdirll}/KMC/RXNet.relevant missing; copying ${final}/RXNet.cg to ${final}/RXNet.rel" >&2
+   cp ${final}/RXNet.cg ${final}/RXNet.rel
 fi
 #Make convergence.txt
 track.py ${molecule} ${final}
@@ -378,7 +383,11 @@ cd ${final}
 #   #gnuplot <Energy_profile.gnu>Energy_profile.pdf
 #fi
 ##Create csv file
-awk '/Time/,0 {for(i=1;i<=NF-1;i++) printf "%s, ",$i;print $NF}' kinetics$postb > kinetics.csv
+if [ -f kinetics$postb ]; then
+  awk '/Time/,0 {for(i=1;i<=NF-1;i++) printf "%s, ",$i;print $NF}' kinetics$postb > kinetics.csv
+else
+  echo "WARNING: kinetics file kinetics$postb not found; skipping kinetics.csv" >&2
+fi
 ##End of create csv file
 #####################################################^
 rm -rf population${postb}.gnu pop_data* kinetics$postb

@@ -49,14 +49,18 @@ if [ $nlprlist -eq 1 ];then
 fi
 
 echo "codes of products" > tmp_code
+rm -f ${tsdirhl}/PRODs/PRlist_tags.log
 for name in $(sqlite3 $tsdirhl/PRODs/prodhl.db "select name from prodhl")
 do
    formula="$(sqlite3 $tsdirhl/PRODs/prodhl.db "select natom,geom from prodhl where name='$name'" | sed 's@|@\n\n@g' | FormulaPROD.sh)"
    echo "$formula" >>tmp_code
    sqlite3 ${tsdirhl}/PRODs/prodhl.db "update prodhl set formula='$formula' where name='$name';"
+   sqlite3 ${tsdirhl}/PRODs/prodhl.db "select energy,formula from prodhl where name='$name'" | awk '{for (i=1;i<=NF;i++) printf "%s",$i;printf "\n"}' | sed 's@|@ @g' > tmp_pf
+   sqlite3 ${tsdirhl}/PRODs/prodhl.db "select natom,geom from prodhl where name='$name'" | sed 's@|@\n\n@g' > tmp_geom
+   tag_prod.py tmp_geom | sed 's@-0.000@0.000@g' > tmp_tag
+   paste tmp_pf tmp_tag >> ${tsdirhl}/PRODs/PRlist_tags.log
    echo "Getting the formula for $name"
 done
-
 
 paste $tsdirhl/PRODs/PRlist tmp_code > $tsdirhl/PRODs/PRlist_kmc
 

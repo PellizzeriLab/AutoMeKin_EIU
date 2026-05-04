@@ -56,14 +56,20 @@ echo $$ > .script.pid
 system="$(basename $inputfile .com)"
 echo "   Running TS opt    "
 start=$(date +%s.%N)
-TS.sh $inputfile > /dev/null
+if ! TS.sh $inputfile; then
+  echo "ERROR: TS.sh failed. Check TS-*.log and ${tsdirhl}/* for details."
+  exit 1
+fi
 end=$(date +%s.%N)
 tt=$( echo "$end - $start" | bc -l | awk '{printf "%4.0f",$1}')
 echo "   time: $tt s"
 
 echo "   Running IRC       " 
 start=$(date +%s.%N)
-IRC.sh  >/dev/null 
+if ! IRC.sh; then
+  echo "ERROR: IRC.sh failed. Check IRC-*.log and ${tsdirhl}/IRC/* for details."
+  exit 1
+fi
 end=$(date +%s.%N)
 tt=$( echo "$end - $start" | bc -l | awk '{printf "%4.0f",$1}')
 echo "   time: $tt s"

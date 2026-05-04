@@ -240,11 +240,13 @@ done
 
 output="$(awk '{if(NR==1) print $0; if(NR>1) printf "%2s %4.0f %20s %3s %8.3f %5s %4s %3.0f %4s %6s %3.0f\n",$1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11}' $tsdirhl/KMC/RXNet)"
 echo "$output" > $tsdirhl/KMC/RXNet
+TS_before=$(grep -c '^TS' $tsdirhl/KMC/RXNet)
+echo "DEBUG: HL RXNet TS rows before filter = $TS_before" >&2
 
-if [ $mdc -ge 1 ]; then
 #the products with the same formula as min0 are converted to min0
-   f0="$(sqlite3 ${tsdirhl}/MINs/minhl.db "select natom,geom from minhl where name='min0'" | sed 's@|@\n\n@g' | FormulaPROD.sh)"
-   minn=$(awk '/min0/{print $2}' ${tsdirhl}/MINs/SORTED/MINlist_sorted)
+f0="$(sqlite3 ${tsdirhl}/MINs/minhl.db "select natom,geom from minhl where name='min0'" | sed 's@|@\n\n@g' | FormulaPROD.sh)"
+minn=$(awk '/min0/{print $2}' ${tsdirhl}/MINs/SORTED/MINlist_sorted)
+if [ -n "$minn" ]; then
    for i in $(sqlite3 ${tsdirhl}/PRODs/prodhl.db "select id from prodhl")
    do
       f="$(sqlite3 ${tsdirhl}/PRODs/prodhl.db "select natom,geom from prodhl where id='$i'" | sed 's@|@\n\n@g' | FormulaPROD.sh)"
@@ -252,6 +254,8 @@ if [ $mdc -ge 1 ]; then
          sed -i 's/PROD   '$i'/ MIN   '$minn'/' ${tsdirhl}/KMC/RXNet
       fi
    done
+else
+   echo "WARNING: could not find min0 in ${tsdirhl}/MINs/SORTED/MINlist_sorted; skipping min0 product conversion" >&2
 fi
 
 # Edit RXNet to remove PROD<-->PROD channels and coarse-grain it by removing fast equilibium (between conf isomers)

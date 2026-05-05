@@ -1329,6 +1329,8 @@ if [ "$program_hl" = "g09" ] || [ "$program_hl" = "g16" ];then
    energy=$(get_energy_g09_$HLcalc.sh $tsdirhl/${name}.log $noHLcalc)
    zpe=$(get_ZPE_g09.sh $tsdirhl/${name}.log)
    g=$(get_G_g09.sh $tsdirhl/${name}.log)
+   if [ -z "$zpe" ]; then zpe=0; fi
+   if [ -z "$g" ]; then g=0; fi
    geom="$(get_geom_g09.sh $tsdirhl/${name}.log)"
    freq="$(get_freq_g09.sh $tsdirhl/${name}.log)"
    sigma=$(awk 'BEGIN{IGNORECASE=1};/SYMMETRY NUMBER/{print $NF;exit}' $tsdirhl/${name}.log | sed 's@\.@@' )
@@ -1349,6 +1351,8 @@ if [ "$program_hl" = "g09" ] || [ "$program_hl" = "g16" ] ;then
    if [ $name != "min0" ]; then
       zpe=$(get_ZPE_g09.sh $i)
       g=$(get_G_g09.sh $i)
+      if [ -z "$zpe" ]; then zpe=0; fi
+      if [ -z "$g" ]; then g=0; fi
       freq="$(get_freq_g09.sh $i)"
 # insert all minima except min0
       sqlite3 ${tsdirhl}/MINs/minhl.db "insert or ignore into minhl (natom,name,energy,zpe,g,geom,freq) values ($natom,'$name',$energy,$zpe,$g,'$geom','$freq');"

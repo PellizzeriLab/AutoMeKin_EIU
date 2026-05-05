@@ -1525,7 +1525,7 @@ echo "Current number of MINs optimized at the HL=" $nfin
 
 function check_freq_ts {
 if [ "$program_hl" = "g09" ] || [ "$program_hl" = "g16" ]; then
-   ok=$(awk 'BEGIN{fok=0;ok=0;nt=0};/Frequencies/{++nfreq;if($3<0 && $4>0 && nfreq==1) fok=1};/Normal termi/{++nt};END{if(nt==('$noHLcalc'+1) && fok==1) ok=1; print ok}' $tsdirhl/${name}.log)
+   ok=$(awk 'BEGIN{fok=0;ok=0;nt=0};/Frequencies/ && $1=="Frequencies"{++nfreq;if($3<0 && $4>0 && nfreq==1) fok=1};/Normal termi/{++nt};END{if(nt==('$noHLcalc'+1) && fok==1) ok=1; print ok}' $tsdirhl/${name}.log)
 elif [ "$program_hl" = "qcore" ]; then
    ok=$(awk 'BEGIN{ok=0};/Freq/{getline;f1=$1;getline;f2=$1;if(f1<0 && f2>0) ok=1};END{print ok}' $tsdirhl/${name}.log)
 fi
@@ -1546,7 +1546,7 @@ fi
 function check_freq_min {
 if [ "$program_hl" = "g09" ] || [ "$program_hl" = "g16" ]; then
 # See if it did not crashed and grab geometires
-  ok=$(awk 'BEGIN{fok=0;ok=0;nt=0};/Frequencies/{++nfreq;if($3>0 && $4>0 && nfreq==1) fok=1};/Normal termi/{++nt};END{if('$noHLcalc' == nt && fok==1) ok=1; print ok}' $i)
+  ok=$(awk 'BEGIN{fok=0;ok=0;nt=0};/Frequencies/ && $1=="Frequencies"{++nfreq;if($3>0 && $4>0 && nfreq==1) fok=1};/Normal termi/{++nt};END{if('$noHLcalc' == nt && fok==1) ok=1; print ok}' $i)
 elif [ "$program_hl" = "qcore" ]; then
    ok=$(awk 'BEGIN{ok=0};/Freq/{getline;f1=$1;getline;f2=$1;if(f1>0 && f2>0) ok=1};END{print ok}' $i)
 fi

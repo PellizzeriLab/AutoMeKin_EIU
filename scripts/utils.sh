@@ -964,7 +964,7 @@ else
       geo="$(awk 'NF==4{print $0};END{print ""}' ${molecule}.xyz)"
       level=ll
       g09_input
-      echo -e "$inp_hl\n\n" > ${nameg}.dat
+      printf '%s\n\n' "$inp_hl" > ${nameg}.dat
       if [ "$program_opt" = "g09" ]; then  
          g09 <${nameg}.dat >${nameg}.log
       elif [ "$program_opt" = "g16" ]; then  
@@ -1258,23 +1258,77 @@ function g09_input {
       fi
    fi
    if [ "$calc" = "ts" ]; then
-      inp_hl="$(printf '%s\n%s\n%s\n\n%s\n\n%s\n' "$chk" "$cal" "$geo" "$cal_freq" "$pseudo_end")"
+      inp_hl="$(cat <<EOF
+$chk
+$cal
+$geo
+
+$cal_freq
+
+$pseudo_end
+EOF
+)"
       if [ $noHLcalc -eq 2 ] && [ "$level" = "hl" ]; then
          spc="$(sed 's/chk=/chk='$chkfile'/;s@level2@'$level2'@;s/charge/'$charge'/;s/mult/'$mult'/' $sharedir/sp_template)"
-         inp_hl="$(printf '%s\n%s\n%s\n\n%s\n\n%s\n\n%s\n' "$chk" "$cal" "$geo" "$cal_freq" "$pseudo_end" "$spc")"
+         inp_hl="$(cat <<EOF
+$chk
+$cal
+$geo
+
+$cal_freq
+
+$pseudo_end
+
+$spc
+EOF
+)"
       fi
    else
       if [ "$calc" = "min" ]; then
-         inp_hl="$(printf '%s\n%s\n%s\n\n%s\n\n%s\n' "$chk" "$cal" "$geo" "$cal_freq" "$pseudo_end")"
+         inp_hl="$(cat <<EOF
+$chk
+$cal
+$geo
+
+$cal_freq
+
+$pseudo_end
+EOF
+)"
       else
-         inp_hl="$(printf '%s\n%s\n%s\n\n%s\n' "$chk" "$cal" "$geo" "$pseudo_end")"
+         inp_hl="$(cat <<EOF
+$chk
+$cal
+$geo
+
+$pseudo_end
+EOF
+)"
       fi
       if [ $noHLcalc -eq 2 ] && [ "$level" = "hl" ]; then
          spc="$(sed 's/chk=/chk='$chkfile'/;s@level2@'$level2'@;s/charge/'$charge'/;s/mult/'$mult'/' $sharedir/sp_template)"
          if [ "$calc" = "min" ]; then
-            inp_hl="$(printf '%s\n%s\n%s\n\n%s\n\n%s\n\n%s\n' "$chk" "$cal" "$geo" "$cal_freq" "$pseudo_end" "$spc")"
+            inp_hl="$(cat <<EOF
+$chk
+$cal
+$geo
+
+$cal_freq
+
+$pseudo_end
+
+$spc
+EOF
+)"
          else
-            inp_hl="$(printf '%s\n%s\n%s\n\n%s\n' "$chk" "$cal" "$geo" "$spc")"
+            inp_hl="$(cat <<EOF
+$chk
+$cal
+$geo
+
+$spc
+EOF
+)"
          fi
       fi
    fi
@@ -1284,11 +1338,11 @@ function g09_input {
 function qcore_input {
    if [ "$calc" = "min" ] || [ "$calc" = "ts" ]; then
       inp_hl="$(sed -e '/dft/ {' -e 'r qcore_template' -e 'd' -e '}' $sharedir/opt${calc}_hl | sed "s/hessianmethod/$hessianmethod/;s/carga/$charge/;s/tag/$chkfile/;s/temp_amk/$temperature/;s/'/''/g")" 
-      printf "$natom\n\n$geo" > ${tsdirhl}/${chkfile}.xyz
+      printf '%s\n\n%s\n' "$natom" "$geo" > ${tsdirhl}/${chkfile}.xyz
    elif [ "$calc" = "prod" ]; then
       inp_hl="$(sed -e '/dft/ {' -e 'r qcore_template' -e 'd' -e '}' $sharedir/optmin_hl | sed "s/hessianmethod/$hessianmethod/;s/carga/$charge/;s/tag/$chkfile/;s/temp_amk/$temperature/;s/'/''/g")" 
       naf=$(echo "$geo" | wc -l)
-      printf "$naf\n\n$geo" > ${tsdirhl}/PRODs/CALC/${chkfile}.xyz
+      printf '%s\n\n%s\n' "$naf" "$geo" > ${tsdirhl}/PRODs/CALC/${chkfile}.xyz
    elif [ "$calc" = "irc" ]; then
       echo -e "insert or ignore into gaussian values (NULL,'$i',NULL);\n.quit" | sqlite3 ${tsdirhl}/IRC/inputs.db
       cp ${tsdirhl}/${i}_opt.xyz ${tsdirhl}/IRC/${i}_grad.xyz
@@ -1296,8 +1350,8 @@ function qcore_input {
    elif [ "$calc" = "min_irc" ]; then
       echo -e "insert or ignore into gaussian values (NULL,'minf_$i',NULL);\n.quit" | sqlite3 ${tsdirhl}/IRC/inputs.db
       echo -e "insert or ignore into gaussian values (NULL,'minr_$i',NULL);\n.quit" | sqlite3 ${tsdirhl}/IRC/inputs.db
-      printf "$natom\n\n$geof" > ${tsdirhl}/IRC/minf_${i}.xyz
-      printf "$natom\n\n$geor" > ${tsdirhl}/IRC/minr_${i}.xyz
+      printf '%s\n\n%s\n' "$natom" "$geof" > ${tsdirhl}/IRC/minf_${i}.xyz
+      printf '%s\n\n%s\n' "$natom" "$geor" > ${tsdirhl}/IRC/minr_${i}.xyz
       if [ $(nfrag.sh tmp_geomf_$i ${nfrag_th} $nA) -eq 1 ]; then
          sed -e '/dft/ {' -e 'r qcore_template' -e 'd' -e '}' $sharedir/optmin_hl | sed "s/hessianmethod/$hessianmethod/;s/carga/$charge/;s/tag/minf_$i/;s/temp_amk/$temperature/" > ${tsdirhl}/IRC/minf_${i}.dat
       else

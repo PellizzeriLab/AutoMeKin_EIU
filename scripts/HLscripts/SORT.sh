@@ -76,7 +76,12 @@ do
   fi
 done
 echo "ordered energies"
-sort -k 2n tmp_nonoren | awk '{print "TS",NR,$0}' > $tsdirhl/TSs/SORTED/TSlist_sorted
+if [ -s tmp_nonoren ]; then
+  sort -k 2n tmp_nonoren | awk '{print "TS",NR,$0}' > $tsdirhl/TSs/SORTED/TSlist_sorted
+else
+  echo "WARNING: no TS energy entries were generated; creating empty TSlist_sorted" >&2
+  : > $tsdirhl/TSs/SORTED/TSlist_sorted
+fi
 
 
 for i in $(awk '{print $2}' $tsdirhl/TSs/SORTED/TSlist_sorted)
@@ -115,7 +120,12 @@ do
   fi
 done
 echo "ordered energies"
-sort -k 2n tmp_nonoren | awk '{print "MIN",NR,$0}' > $tsdirhl/MINs/SORTED/MINlist_sorted
+if [ -s tmp_nonoren ]; then
+  sort -k 2n tmp_nonoren | awk '{print "MIN",NR,$0}' > $tsdirhl/MINs/SORTED/MINlist_sorted
+else
+  echo "WARNING: no MIN energy entries were generated; creating empty MINlist_sorted" >&2
+  : > $tsdirhl/MINs/SORTED/MINlist_sorted
+fi
 
 sed 's/_min/ min/g' $tsdirhl/MINs/SORTED/MINlist_sorted >tmp_mls
 for i in $(awk '{print $2}' $tsdirhl/MINs/SORTED/MINlist_sorted)

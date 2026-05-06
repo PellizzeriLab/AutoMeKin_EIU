@@ -5,13 +5,22 @@ sharedir=${AMK}/share
 cwd=$PWD
 inputfile='amk.dat'
 
-awk '{print $0}' $1 > tmp_file
-awk 'BEGIN{print "Labels"};NF==4{print $1}' $1 > labels
+if [ ! -s "$1" ]; then
+  echo "FormulaPROD.sh: input file '$1' is missing or empty" >&2
+  exit 1
+fi
+cp "$1" tmp_file
+awk 'BEGIN{print "Labels"};NF==4{print $1}' "$1" > labels
 file=tmp_file
 ##
 read_input
 ##
 elements=${sharedir}/elements
+
+if [ ! -s "$file" ]; then
+  echo "FormulaPROD.sh: empty input, cannot determine formula" >&2
+  exit 1
+fi
 
 createMat.py $file 1 $nA
 
@@ -19,6 +28,9 @@ echo "1 $natom" | cat - ConnMat | cat - ConnMat | sprint2.exe > tmp_spo
 
 nfrag="$(awk '/Results for the Laplacian/{getline; nconn=0
    for(i=6;i<=8;i++) if($i<='${nfrag_th}') {++nconn} ; print nconn}' tmp_spo)"
+if [ -z "$nfrag" ]; then
+  nfrag=1
+fi
 
 echo "$nfrag" >tmp_nf
 
@@ -75,9 +87,9 @@ do
 done
 
 awk '{for(i=1;i<=NF;i++) {if($i>0) printf "%3.0f ",i};print ""
-}' tmp_ddf | awk '{for(i=1;i<=NF;i++) {noanr[NR]=NF;v[NR,i]=$i}} 
+}' tmp_ddf | awk -v nfrag="$nfrag" '{for(i=1;i<=NF;i++) {noanr[NR]=NF;v[NR,i]=$i}} 
 END{
-print "number of fragments=",'$nfrag'
+print "number of fragments=",nfrag
 i=1
 while(i<=NR){
   j=1
@@ -87,7 +99,7 @@ while(i<=NR){
     j++
     }  
   if(p==1) ++nn
-  if(p==1 && nn<'$nfrag') {print "Number of atoms of this fragment=",noanr[i]
+  if(p==1 && nn<nfrag) {print "Number of atoms of this fragment=",noanr[i]
   for(j=1;j<=noanr[i];j++) {printf "%3.0f ",v[i,j]};print "" }
   i++
   }
@@ -143,8 +155,8 @@ for(j=1;j<=noa[inf];j++){
      }
   }
 }
-  print "Code=",sum*'$nfrag'
-} ' $elements tmp_02 >>tmp_fp
+  print "Code=",sum*nfrag
+} ' -v nfrag="$nfrag" $elements tmp_02 >>tmp_fp
 
 awk 'BEGIN{nrfh=1d20}
 /number of fragments/{nfrag=$4}

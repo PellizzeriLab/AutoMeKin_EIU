@@ -1348,15 +1348,12 @@ function get_data_hl_output_mins {
 if [ "$program_hl" = "g09" ] || [ "$program_hl" = "g16" ] ;then
    energy=$(get_energy_g09_$HLcalc.sh $i $noHLcalc)
    geom="$(get_geom_g09.sh $i)"
-   if [ $name != "min0" ]; then
-      zpe=$(get_ZPE_g09.sh $i)
-      g=$(get_G_g09.sh $i)
-      if [ -z "$zpe" ]; then zpe=0; fi
-      if [ -z "$g" ]; then g=0; fi
-      freq="$(get_freq_g09.sh $i)"
-# insert all minima except min0
-      sqlite3 ${tsdirhl}/MINs/minhl.db "insert or ignore into minhl (natom,name,energy,zpe,g,geom,freq) values ($natom,'$name',$energy,$zpe,$g,'$geom','$freq');"
-   fi
+   zpe=$(get_ZPE_g09.sh $i)
+   g=$(get_G_g09.sh $i)
+   if [ -z "$zpe" ]; then zpe=0; fi
+   if [ -z "$g" ]; then g=0; fi
+   freq="$(get_freq_g09.sh $i)"
+   sqlite3 ${tsdirhl}/MINs/minhl.db "insert or ignore into minhl (natom,name,energy,zpe,g,geom,freq) values ($natom,'$name',$energy,$zpe,$g,'$geom','$freq');"
 elif [ "$program_hl" = "qcore" ];then
    energy=$(awk 'NR==1{print $2}' $i)
    if [ -f ${tsdirhl}/IRC/${name}_opt.xyz ]; then

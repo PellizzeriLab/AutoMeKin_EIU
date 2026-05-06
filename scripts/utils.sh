@@ -1168,6 +1168,7 @@ function g09_input {
       cal_freq="$(sed 's/chkfile/'$chkfile'/;s@Mem@'$mem'@;s@pseudo@'$pseudo'@;s/tkmc/'$temperature'/;s@iop@'"$iop"'@;s@level1@'$levelc'@;s/charge/'$charge'/;s/mult/'$mult'/' $sharedir/freq_template_link1_gaussian)"
    elif [ "$calc" = "min" ]; then
       cal="$(sed 's@Mem@'$mem'@;s@pseudo@'$pseudo'@;s/ts,noeigentest,//;s/tkmc/'$temperature'/;s@level1@'$levelc'@;s/charge/'$charge'/;s/mult/'$mult'/;s@iop@'"$iop"'@' $sharedir/hl_input_template)"
+      cal_freq="$(sed 's/chkfile/'$chkfile'/;s@Mem@'$mem'@;s@pseudo@'$pseudo'@;s/tkmc/'$temperature'/;s@iop@'"$iop"'@;s@level1@'$levelc'@;s/charge/'$charge'/;s/mult/'$mult'/' $sharedir/freq_template_link1_gaussian)"
    elif [ "$calc" = "irc" ]; then
       cp ${tsdirhl}/${i}.chk ${tsdirhl}/IRC/ircf_${i}.chk
       cp ${tsdirhl}/${i}.chk ${tsdirhl}/IRC/ircr_${i}.chk
@@ -1263,10 +1264,18 @@ function g09_input {
          inp_hl="$(echo -e "$chk"'\n'"$cal"'\n'"$geo"'\n\n'"$cal_freq"'\n'" "'\n'"$pseudo_end"'\n\n'"$spc")"
       fi
    else
-      inp_hl="$(echo -e "$chk"'\n'"$cal"'\n'"$geo"'\n'" "'\n'"$pseudo_end")"
+      if [ "$calc" = "min" ]; then
+         inp_hl="$(echo -e "$chk"'\n'"$cal"'\n'"$geo"'\n\n'"$cal_freq"'\n'" "'\n'"$pseudo_end")"
+      else
+         inp_hl="$(echo -e "$chk"'\n'"$cal"'\n'"$geo"'\n'" "'\n'"$pseudo_end")"
+      fi
       if [ $noHLcalc -eq 2 ] && [ "$level" = "hl" ]; then
          spc="$(sed 's/chk=/chk='$chkfile'/;s@level2@'$level2'@;s/charge/'$charge'/;s/mult/'$mult'/' $sharedir/sp_template)"
-         inp_hl="$(echo -e "$chk"'\n'"$cal"'\n'"$geo"'\n\n'"$spc")"
+         if [ "$calc" = "min" ]; then
+            inp_hl="$(echo -e "$chk"'\n'"$cal"'\n'"$geo"'\n\n'"$cal_freq"'\n'" '"\n'"$pseudo_end"'\n\n'"$spc")"
+         else
+            inp_hl="$(echo -e "$chk"'\n'"$cal"'\n'"$geo"'\n\n'"$spc")"
+         fi
       fi
    fi
 }

@@ -1,6 +1,7 @@
 #!/bin/bash
 # script to remove ts $1
-source utils.sh
+scriptdir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+source "$scriptdir/../utils.sh"
 #On exit remove tmp files
 tmp_files=(rmts_arg rmts_arg*)
 trap 'err_report $LINENO' ERR
@@ -57,3 +58,4 @@ cp ${tsdirhl}/KMC/RXNet.cg_backup ${tsdirhl}/KMC/RXNet.cg
 cp ${tsdirhl}/KMC/RXNet_long.cg_backup ${tsdirhl}/KMC/RXNet_long.cg
 cp ${tsdirhl}/KMC/RXNet_long.cg_groupedprods_backup ${tsdirhl}/KMC/RXNet_long.cg_groupedprods
 cp ${tsdirhl}/KMC/RXNet.relevant_backup ${tsdirhl}/KMC/RXNet.relevant
+

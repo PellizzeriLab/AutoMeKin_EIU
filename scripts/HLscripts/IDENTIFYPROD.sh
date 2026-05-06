@@ -1,5 +1,6 @@
 #!/bin/bash
-source utils.sh
+scriptdir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+source "$scriptdir/../utils.sh"
 #remove tmp files
 tmp_files=(tmp tmp_code tmp*)
 trap 'err_report $LINENO' ERR
@@ -113,5 +114,6 @@ if [ $(awk 'BEGIN{nts=0};{if($1=="TS") ++nts};END{print nts}' $tsdirhl/KMC/RXNet
 else
    linked_paths.py tmp $minn $en > $tsdirhl/KMC/RXNet_long.cg_groupedprods
 fi
+
 
 

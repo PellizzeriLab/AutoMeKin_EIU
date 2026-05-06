@@ -11,7 +11,8 @@ sharedir=${AMK}/share
 
 cwd=$PWD
 exe="IRC.sh"
-source utils.sh
+scriptdir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+source "$scriptdir/../utils.sh"
 
 is_float() {
   [[ $1 =~ ^[[:space:]]*[+-]?[0-9]+([.]?[0-9]+)?([eE][+-]?[0-9]+)?[[:space:]]*$ ]]
@@ -154,4 +155,5 @@ echo Performing a total of $m irc calculations
 if [ $m -gt 0 ]; then
    doparallel "runIRC.sh {1} $tsdirhl $program_hl" "$(seq $m)"
 fi
+
 

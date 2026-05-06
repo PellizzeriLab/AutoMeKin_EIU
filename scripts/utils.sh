@@ -1258,23 +1258,23 @@ function g09_input {
       fi
    fi
    if [ "$calc" = "ts" ]; then
-      inp_hl="$(echo -e "$chk"'\n'"$cal"'\n'"$geo"'\n\n'"$cal_freq"'\n'" "'\n'"$pseudo_end")"
+      inp_hl="$(printf '%s\n%s\n%s\n\n%s\n\n%s\n' "$chk" "$cal" "$geo" "$cal_freq" "$pseudo_end")"
       if [ $noHLcalc -eq 2 ] && [ "$level" = "hl" ]; then
          spc="$(sed 's/chk=/chk='$chkfile'/;s@level2@'$level2'@;s/charge/'$charge'/;s/mult/'$mult'/' $sharedir/sp_template)"
-         inp_hl="$(echo -e "$chk"'\n'"$cal"'\n'"$geo"'\n\n'"$cal_freq"'\n'" "'\n'"$pseudo_end"'\n\n'"$spc")"
+         inp_hl="$(printf '%s\n%s\n%s\n\n%s\n\n%s\n\n%s\n' "$chk" "$cal" "$geo" "$cal_freq" "$pseudo_end" "$spc")"
       fi
    else
       if [ "$calc" = "min" ]; then
-         inp_hl="$(echo -e "$chk"'\n'"$cal"'\n'"$geo"'\n\n'"$cal_freq"'\n'" "'\n'"$pseudo_end")"
+         inp_hl="$(printf '%s\n%s\n%s\n\n%s\n\n%s\n' "$chk" "$cal" "$geo" "$cal_freq" "$pseudo_end")"
       else
-         inp_hl="$(echo -e "$chk"'\n'"$cal"'\n'"$geo"'\n'" "'\n'"$pseudo_end")"
+         inp_hl="$(printf '%s\n%s\n%s\n\n%s\n' "$chk" "$cal" "$geo" "$pseudo_end")"
       fi
       if [ $noHLcalc -eq 2 ] && [ "$level" = "hl" ]; then
          spc="$(sed 's/chk=/chk='$chkfile'/;s@level2@'$level2'@;s/charge/'$charge'/;s/mult/'$mult'/' $sharedir/sp_template)"
          if [ "$calc" = "min" ]; then
-            inp_hl="$(echo -e "$chk"'\n'"$cal"'\n'"$geo"'\n\n'"$cal_freq"'\n'" '"\n'"$pseudo_end"'\n\n'"$spc")"
+            inp_hl="$(printf '%s\n%s\n%s\n\n%s\n\n%s\n\n%s\n' "$chk" "$cal" "$geo" "$cal_freq" "$pseudo_end" "$spc")"
          else
-            inp_hl="$(echo -e "$chk"'\n'"$cal"'\n'"$geo"'\n\n'"$spc")"
+            inp_hl="$(printf '%s\n%s\n%s\n\n%s\n' "$chk" "$cal" "$geo" "$spc")"
          fi
       fi
    fi

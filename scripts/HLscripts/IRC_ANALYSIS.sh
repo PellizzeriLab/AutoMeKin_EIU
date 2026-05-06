@@ -1,6 +1,7 @@
 #!/bin/bash
 #
-source utils.sh
+scriptdir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+source "$scriptdir/../utils.sh"
 
 cwd=$PWD
 sharedir=${AMK}/share
@@ -161,3 +162,4 @@ do
      echo "Double check this opt: $name"
   fi
 done 
+

@@ -1,6 +1,7 @@
 #!/bin/bash
 sharedir=${AMK}/share
-source utils.sh
+scriptdir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+source "$scriptdir/../utils.sh"
 #On exit remove tmp files
 tmp_files=(tmp*)
 trap 'err_report $LINENO' ERR
@@ -22,4 +23,5 @@ if [ "$program_hl" = "g16" ]; then
 else
    ${program_hl}_input
 fi
+
 

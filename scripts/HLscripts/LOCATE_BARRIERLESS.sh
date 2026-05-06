@@ -1,6 +1,7 @@
 #!/bin/bash
 
-source utils.sh
+scriptdir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+source "$scriptdir/../utils.sh"
 #On exit remove tmp files
 tmp_files=(tmp_tag tmp_comp tmp_geom tmp* )
 trap 'err_report $LINENO' ERR
@@ -98,4 +99,5 @@ if [ $nbl -gt 0 ]; then
 fi
 
 rm -rf tmp_geomf_* tmp_geomr_*
+
 

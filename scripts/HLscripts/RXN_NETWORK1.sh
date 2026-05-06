@@ -1,6 +1,7 @@
 #!/bin/bash
 sharedir=${AMK}/share
-source utils.sh
+scriptdir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+source "$scriptdir/../utils.sh"
 #remove tmp files
 tmp_files=(deg.out deg_form.out deg* ConnMat mingeom.xyz ScalMat sprint.out sprint.* symm.dat tmp_wrk tmp_ci tmp_nisol tmp_inp tmp_symm tmp*)
 trap 'err_report $LINENO' ERR
@@ -362,3 +363,4 @@ echo "Conformational isomers of the TS structures"
 if [ $ci -eq 1 ]; then
    conf_isomer_ts.sh 1
 fi
+

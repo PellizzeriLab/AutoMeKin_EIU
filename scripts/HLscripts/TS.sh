@@ -12,7 +12,8 @@ sharedir=${AMK}/share
 #exe=$(basename $0)
 exe="TS.sh"
 cwd=$PWD
-source utils.sh
+scriptdir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+source "$scriptdir/../utils.sh"
 #On exit remove tmp files
 tmp_files=(tmp*)
 #trap 'err_report $LINENO' ERR

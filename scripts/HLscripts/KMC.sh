@@ -1,5 +1,6 @@
 #!/bin/bash
-source utils.sh
+scriptdir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+source "$scriptdir/../utils.sh"
 #remove tmp files
 tmp_files=(tmprxn tmp*)
 trap 'err_report $LINENO' ERR
@@ -283,3 +284,4 @@ do
       printf "%8s %10s\n" $popp "$prod" >> $tsdirhl/KMC/branching${postb}.out
    fi
 done
+

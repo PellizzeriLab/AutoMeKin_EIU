@@ -1,6 +1,7 @@
 #!/bin/bash
 sharedir=${AMK}/share
-source utils.sh
+scriptdir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+source "$scriptdir/../utils.sh"
 #remove tmp files
 tmp_files=(tmp_next_layer.out tmp_plotdat1.out tmp_plotdat.out tmp_next_layer tmp_diagram_middle tmp_pr_ts tmp_ee tmp*)
 trap 'err_report $LINENO' ERR
@@ -193,3 +194,4 @@ cat tmp_diagram_middle $sharedir/diagram_template1 >>diagram.gnu
 ##
 ##
 rm -rf tmp*
+

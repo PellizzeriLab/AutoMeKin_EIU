@@ -1,6 +1,7 @@
 #!/bin/bash
 
-source utils.sh
+scriptdir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+source "$scriptdir/../utils.sh"
 #remove tmp files
 tmp_files=(ee* freq* gcorr* geom* zpe* tmp_geom tmp_rxyz tmp*)
 trap 'err_report $LINENO' ERR
@@ -160,3 +161,4 @@ done
 ##Just in case freq files are not deleted
 rm -rf freq*
 echo "End of calcs"
+

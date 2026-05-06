@@ -1,7 +1,8 @@
 #!/bin/bash
 sharedir=${AMK}/share
 
-source utils.sh
+scriptdir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+source "$scriptdir/../utils.sh"
 #On exit remove tmp files
 tmp_files=(tmp_rel tmp_pop_data tmp_cols tmp_kmc0 tmp_kmc tmp_conn_proc tmp_RXNet tmp_RXNet.cg tmp_rxn tmp_ep tmp_geom tmp_pf tmp_pf_add tmp_rxn_barrless tmp_en tmp* RXNet0 RXNetcg0) 
 trap 'err_report $LINENO' ERR
@@ -478,5 +479,6 @@ fi
 #####################################################^
 rm -rf MINinfo.* RXNet.cg.* RXNet.pdf RXNet.ps RXNet.rel.* TSinfo.* report_in.pdf
 cd ..
+
 
 

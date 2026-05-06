@@ -1,5 +1,6 @@
 #!/bin/bash
-source utils.sh
+scriptdir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+source "$scriptdir/../utils.sh"
 #remove tmp files
 tmp_files=(tmp_mls tmp_nonoren tmp_en tmp*)
 trap 'err_report $LINENO' ERR
@@ -151,3 +152,4 @@ do
 done
 
 sed 's/_min/ min/g' $tsdirhl/MINs/SORTED/MINlist_sorted | awk '{print $1,$2,$4,$5}' > $tsdirhl/MINs/SORTED/MINlist_sorted.log
+

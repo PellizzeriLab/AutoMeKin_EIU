@@ -10,7 +10,8 @@
 exe="PRODs.sh"
 sharedir=${AMK}/share
 elements=${sharedir}/elements
-source utils.sh
+scriptdir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+source "$scriptdir/../utils.sh"
 #remove tmp files
 tmp_files=(tmp_geom tmp_nf tmp* ffchmu)
 trap cleanup EXIT INT
@@ -176,5 +177,6 @@ echo Performing a total of $m opt calculations
 if [ $m -gt 0 ]; then
    doparallel "runTS.sh {1} $dir $program_hl" "$(seq $m)"
 fi
+
 
 

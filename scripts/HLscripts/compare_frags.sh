@@ -2,7 +2,8 @@
 #Input  geom name_frag working_dir
 # name_frag= fragn_$nn  (sed --> frag n _ $nn )
 sharedir=${AMK}/share
-source utils.sh
+scriptdir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+source "$scriptdir/../utils.sh"
 #remove tmp files
 tmp_files=(deg.out deg_form.out deg* ConnMat labels mingeom.xyz ScalMat sprint.out)
 trap 'err_report $LINENO' ERR
@@ -101,5 +102,6 @@ if [ $res -eq 1 ]; then
 else
    echo $number $name >> $working/fraglist
 fi
+
 
 

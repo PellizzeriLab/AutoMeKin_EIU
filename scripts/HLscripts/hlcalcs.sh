@@ -10,7 +10,8 @@
 exe="hlcalcs.sh"
 cwd="$PWD"
 sharedir=${AMK}/share
-source utils.sh
+scriptdir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+source "$scriptdir/../utils.sh"
 ###
 print_ref
 ##
@@ -131,4 +132,5 @@ FINAL.sh >/dev/null
 echo ""
 echo "END OF THE CALCULATIONS"
 echo ""
+
 

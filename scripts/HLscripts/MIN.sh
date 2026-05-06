@@ -10,7 +10,8 @@
 sharedir=${AMK}/share
 
 exe="MIN.sh"
-source utils.sh
+scriptdir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+source "$scriptdir/../utils.sh"
 #exe=$(basename $0)
 #current working dir
 cwd=$PWD
@@ -59,5 +60,6 @@ echo Performing a total of $n opt calculations
 if [ $n -gt 0 ]; then
    doparallel "runMIN.sh {1} ${tsdirhl}/IRC $program_hl" "$(seq $n)"
 fi
+
 
 

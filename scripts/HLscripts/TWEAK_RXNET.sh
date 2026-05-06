@@ -11,7 +11,8 @@ inputfile="amk.dat"
 exe="TWEAK_RXNET.sh"
 cwd="$PWD"
 sharedir=${AMK}/share
-source utils.sh
+scriptdir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+source "$scriptdir/../utils.sh"
 
 read_input
 echo "   Tweaking the Reaction Network  "
@@ -57,4 +58,5 @@ FINAL.sh >/dev/null
 echo ""
 echo "END OF THE CALCULATIONS"
 echo ""
+
 

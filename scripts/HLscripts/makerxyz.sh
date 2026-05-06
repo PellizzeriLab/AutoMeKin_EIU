@@ -147,9 +147,13 @@ do
     natom=$(awk '{if(NF==4) ++natom};END{print natom}' geom$ext)
     geom=$(cat geom$ext)
     freq=$(cat freq$ext)
-    formula="$(sqlite3 $tsdirhl/PRODs/prodhl.db "select formula from prodhl where name='$namedb'")"
+    namedb_sql=$(sql_quote "$namedb")
+    formula="$(sqlite3 $tsdirhl/PRODs/prodhl.db "select formula from prodhl where name='$namedb_sql'")"
+    geom_sql=$(sql_quote "$geom")
+    freq_sql=$(sql_quote "$freq")
+    formula_sql=$(sql_quote "$formula")
 ###insert into prodfhl
-    sqlite3 ${tsdirhl}/PRODs/CALC/prodfhl.db "insert into prodfhl (natom,name,energy,zpe,g,geom,freq,formula) values ($natom,'$namedb',$e,$zpe,$gcorr,'$geom','$freq','$formula');"
+    sqlite3 ${tsdirhl}/PRODs/CALC/prodfhl.db "insert into prodfhl (natom,name,energy,zpe,g,geom,freq,formula) values ($natom,'$namedb_sql',$e,$zpe,$gcorr,'$geom_sql','$freq_sql','$formula_sql');"
     rm -rf ee$ext freq$ext zpe$ext gcorr$ext geom$ext geom0$ext 
 done
 

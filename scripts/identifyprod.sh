@@ -55,17 +55,21 @@ do
    named=$(echo $name | sed 's/_min/ min/' | awk '{print $2}')
    if [ ! -f ${tsdirll}/PRODs/${named}_formula ]; then
       echo "Getting the formula for $name"
-      formula="$(sqlite3 ${tsdirll}/PRODs/prod.db "select natom,geom from prod where name='$name'" | sed 's@|@\n\n@g' | FormulaPROD.sh)"
+      name_sql=$(sql_quote "$name")
+      formula="$(sqlite3 ${tsdirll}/PRODs/prod.db "select natom,geom from prod where name='$name_sql'" | sed 's@|@\n\n@g' | FormulaPROD.sh)"
       echo "$formula" > ${tsdirll}/PRODs/${named}_formula
    else
       formula="$(cat ${tsdirll}/PRODs/${named}_formula)"
    fi
    if [ ! -f ${tsdirll}/PRODs/${named}_tag ]; then
       echo "Getting the unique tag for $name"
-      sqlite3 ${tsdirll}/PRODs/prod.db "select natom,geom from prod where name='$name'" | sed 's@|@\n\n@g'  > tmp_geom
+      name_sql=$(sql_quote "$name")
+      sqlite3 ${tsdirll}/PRODs/prod.db "select natom,geom from prod where name='$name_sql'" | sed 's@|@\n\n@g'  > tmp_geom
       tag_prod.py tmp_geom | sed 's@-0.000@0.000@g'  > ${tsdirll}/PRODs/${named}_tag
    fi 
-   sqlite3 ${tsdirll}/PRODs/prod.db "update prod set formula='$formula' where name='$name';"
+   formula_sql=$(sql_quote "$formula")
+   name_sql=$(sql_quote "$name")
+   sqlite3 ${tsdirll}/PRODs/prod.db "update prod set formula='$formula_sql' where name='$name_sql';"
    cat ${tsdirll}/PRODs/${named}_formula >>tmp_code
    sqlite3 ${tsdirll}/PRODs/prod.db "select energy,formula from prod where name='$name'" | awk '{for (i=1;i<=NF;i++) printf "%s",$i;printf "\n"}' | sed 's@|@ @g' >tmp_pf
    paste tmp_pf ${tsdirll}/PRODs/${named}_tag  >> ${tsdirll}/PRODs/PRlist_tags.log

@@ -35,7 +35,8 @@ elif [ $ci -eq 1 ]; then
    for name in $(sqlite3 ${tsdirhl}/MINs/SORTED/minshl.db "select lname from minshl")
    do 
       echo $name
-      sqlite3 ${tsdirhl}/MINs/SORTED/minshl.db "select natom,geom from minshl where lname='$name'" | sed 's@|@\n\n@g' >mingeom.xyz
+      name_sql=$(sql_quote "$name")
+      sqlite3 ${tsdirhl}/MINs/SORTED/minshl.db "select natom,geom from minshl where lname='$name_sql'" | sed 's@|@\n\n@g' >mingeom.xyz
       createMat.py mingeom.xyz 1 $nA
       echo "1 $natom" | cat - ConnMat | sprint.exe >sprint.out
       awk '{if( NR == FNR) {l[NR]=$1;n[NR]=NR/10+1;tne=NR}}
@@ -336,14 +337,17 @@ do
  lnmin1="MIN"$nmin1
  lnmin2="MIN"$nmin2
  lts="TS"$ts
- sqlite3 $tsdirhl/TSs/SORTED/tsshl.db "select natom,geom from tsshl where name='$lts'" | sed 's@|@\n@g' >tmp_inp
+ lts_sql=$(sql_quote "$lts")
+ lnmin1_sql=$(sql_quote "$lnmin1")
+ lnmin2_sql=$(sql_quote "$lnmin2")
+ sqlite3 $tsdirhl/TSs/SORTED/tsshl.db "select natom,geom from tsshl where name='$lts_sql'" | sed 's@|@\n@g' >tmp_inp
  symm.sh tmp_inp
  nisots=$(awk '/C1/{print "2"};/CS/{print "1"}' tmp_symm)
- sqlite3 $tsdirhl/MINs/SORTED/minshl.db "select natom,geom from minshl where name='$lnmin1'" | sed 's@|@\n@g' >tmp_inp
+ sqlite3 $tsdirhl/MINs/SORTED/minshl.db "select natom,geom from minshl where name='$lnmin1_sql'" | sed 's@|@\n@g' >tmp_inp
  symm.sh tmp_inp
  nisomin1=$(awk '/C1/{print "2"};/CS/{print "1"}' tmp_symm)
  if [ $nmin2 -gt 0 ]; then
-   sqlite3 $tsdirhl/MINs/SORTED/minshl.db "select natom,geom from minshl where name='$lnmin2'" | sed 's@|@\n@g' >tmp_inp
+   sqlite3 $tsdirhl/MINs/SORTED/minshl.db "select natom,geom from minshl where name='$lnmin2_sql'" | sed 's@|@\n@g' >tmp_inp
    symm.sh tmp_inp
    nisomin2=$(awk '/C1/{print "2"};/CS/{print "1"}' tmp_symm)
    printf "%6.0f %6.0f %6.0f\n" $nisomin1   $nisots   $nisomin2 >>tmp_nisol

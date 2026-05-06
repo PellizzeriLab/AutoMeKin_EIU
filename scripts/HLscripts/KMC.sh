@@ -155,10 +155,12 @@ do
      echo "rrkm" >> $tsdirhl/KMC/RRKM/proc1_TS${procn}.dat
      echo "1.0"  >> $tsdirhl/KMC/RRKM/proc1_TS${procn}.dat
 ###sqlite3
-     sqlite3 $tsdirhl/MINs/SORTED/minshl.db "select freq from minshl where name='$lmin1'" | wc -l >> $tsdirhl/KMC/RRKM/proc1_TS${procn}.dat
-     sqlite3 $tsdirhl/MINs/SORTED/minshl.db "select freq from minshl where name='$lmin1'" | awk '{printf "%10.0f\n",sqrt($1*$1)}'  >> $tsdirhl/KMC/RRKM/proc1_TS${procn}.dat
-     sqlite3 $tsdirhl/TSs/SORTED/tsshl.db "select freq from tsshl where name='$lts'" | awk 'END{print NR-1}'  >> $tsdirhl/KMC/RRKM/proc1_TS${procn}.dat
-     sqlite3 $tsdirhl/TSs/SORTED/tsshl.db "select freq from tsshl where name='$lts'" | awk '{if($1>0) printf "%10.0f\n",$1}'  >> $tsdirhl/KMC/RRKM/proc1_TS${procn}.dat
+     lmin1_sql=$(sql_quote "$lmin1")
+     lts_sql=$(sql_quote "$lts")
+     sqlite3 $tsdirhl/MINs/SORTED/minshl.db "select freq from minshl where name='$lmin1_sql'" | wc -l >> $tsdirhl/KMC/RRKM/proc1_TS${procn}.dat
+     sqlite3 $tsdirhl/MINs/SORTED/minshl.db "select freq from minshl where name='$lmin1_sql'" | awk '{printf "%10.0f\n",sqrt($1*$1)}'  >> $tsdirhl/KMC/RRKM/proc1_TS${procn}.dat
+     sqlite3 $tsdirhl/TSs/SORTED/tsshl.db "select freq from tsshl where name='$lts_sql'" | awk 'END{print NR-1}'  >> $tsdirhl/KMC/RRKM/proc1_TS${procn}.dat
+     sqlite3 $tsdirhl/TSs/SORTED/tsshl.db "select freq from tsshl where name='$lts_sql'" | awk '{if($1>0) printf "%10.0f\n",$1}'  >> $tsdirhl/KMC/RRKM/proc1_TS${procn}.dat
 ###
      echo "Running proc1_TS"$procn".dat"
      rrkm.exe <$tsdirhl/KMC/RRKM/proc1_TS${procn}.dat > $tsdirhl/KMC/RRKM/proc1_TS${procn}.out  
@@ -198,11 +200,12 @@ do
         echo "1.0"  >> $tsdirhl/KMC/RRKM/proc2_TS${procn}.dat
 ###sqlite3
 #nfreq_react
-        sqlite3 $tsdirhl/MINs/SORTED/minshl.db "select freq from minshl where name='$lmin2'" | wc -l >> $tsdirhl/KMC/RRKM/proc2_TS${procn}.dat
-        sqlite3 $tsdirhl/MINs/SORTED/minshl.db "select freq from minshl where name='$lmin2'" | awk '{printf "%10.0f\n",sqrt($1*$1)}'  >> $tsdirhl/KMC/RRKM/proc2_TS${procn}.dat
+        lmin2_sql=$(sql_quote "$lmin2")
+        sqlite3 $tsdirhl/MINs/SORTED/minshl.db "select freq from minshl where name='$lmin2_sql'" | wc -l >> $tsdirhl/KMC/RRKM/proc2_TS${procn}.dat
+        sqlite3 $tsdirhl/MINs/SORTED/minshl.db "select freq from minshl where name='$lmin2_sql'" | awk '{printf "%10.0f\n",sqrt($1*$1)}'  >> $tsdirhl/KMC/RRKM/proc2_TS${procn}.dat
 #nfreq_ts
-        sqlite3 $tsdirhl/TSs/SORTED/tsshl.db "select freq from tsshl where name='$lts'" | awk 'END{print NR-1}'  >> $tsdirhl/KMC/RRKM/proc2_TS${procn}.dat
-        sqlite3 $tsdirhl/TSs/SORTED/tsshl.db "select freq from tsshl where name='$lts'" | awk '{if($1>0) printf "%10.0f\n",$1}'  >> $tsdirhl/KMC/RRKM/proc2_TS${procn}.dat
+        sqlite3 $tsdirhl/TSs/SORTED/tsshl.db "select freq from tsshl where name='$lts_sql'" | awk 'END{print NR-1}'  >> $tsdirhl/KMC/RRKM/proc2_TS${procn}.dat
+        sqlite3 $tsdirhl/TSs/SORTED/tsshl.db "select freq from tsshl where name='$lts_sql'" | awk '{if($1>0) printf "%10.0f\n",$1}'  >> $tsdirhl/KMC/RRKM/proc2_TS${procn}.dat
 ###
         echo "Running proc2_TS"$procn".dat"
         rrkm.exe <$tsdirhl/KMC/RRKM/proc2_TS${procn}.dat > $tsdirhl/KMC/RRKM/proc2_TS${procn}.out  

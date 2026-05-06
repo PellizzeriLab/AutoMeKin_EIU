@@ -62,10 +62,11 @@ do
   namer=${name}.rxyz
 #  file=$i
 #  name="$(basename $i)" 
+  name_sql=$(sql_quote "$name")
   if [ $rate -eq 1 ]; then
-     dum_en=$(sqlite3 ${tsdirhl}/TSs/tshl.db "select energy,zpe from tshl where name='$name'" | sed 's@|@ @g')
+     dum_en=$(sqlite3 ${tsdirhl}/TSs/tshl.db "select energy,zpe from tshl where name='$name_sql'" | sed 's@|@ @g')
   elif [ $rate -eq 0 ]; then
-     dum_en=$(sqlite3 ${tsdirhl}/TSs/tshl.db "select energy,g from tshl where name='$name'" | sed 's@|@ @g')
+     dum_en=$(sqlite3 ${tsdirhl}/TSs/tshl.db "select energy,g from tshl where name='$name_sql'" | sed 's@|@ @g')
   fi
   echo "$dum_min0"   >tmp_en
   echo "$dum_en"    >>tmp_en
@@ -92,9 +93,12 @@ do
 ##keep this for the moment
     name0=TS$i
     names=TS${i}_${name}
+    name0_sql=$(sql_quote "$name0")
+    names_sql=$(sql_quote "$names")
+    namenr_sql=$(sql_quote "$namenr")
 #    cp $tsdirhl/TSs/${name} $tsdirhl/TSs/SORTED/${names}
 ##insert data into tsshl
-    sqlite3 "" "attach '${tsdirhl}/TSs/tshl.db' as tshl; attach '${tsdirhl}/TSs/SORTED/tsshl.db' as tsshl; insert into tsshl (natom,name,lname,energy,zpe,g,geom,freq) select natom,'$name0','$names',energy,zpe,g,geom,freq from tshl where name='$namenr';"
+    sqlite3 "" "attach '${tsdirhl}/TSs/tshl.db' as tshl; attach '${tsdirhl}/TSs/SORTED/tsshl.db' as tsshl; insert into tsshl (natom,name,lname,energy,zpe,g,geom,freq) select natom,'$name0_sql','$names_sql',energy,zpe,g,geom,freq from tshl where name='$namenr_sql';"
 done
 
 # We now go on with the MINs
@@ -106,10 +110,11 @@ for name in $(sqlite3 ${tsdirhl}/MINs/norep/minnrhl.db "select name from minnrhl
 do
   echo $name
   namer=${name}.rxyz
+  name_sql=$(sql_quote "$name")
   if [ $rate -eq 1 ]; then
-     dum_en=$(sqlite3 ${tsdirhl}/MINs/norep/minnrhl.db "select energy,zpe from minnrhl where name='$name'" | sed 's@|@ @g')
+     dum_en=$(sqlite3 ${tsdirhl}/MINs/norep/minnrhl.db "select energy,zpe from minnrhl where name='$name_sql'" | sed 's@|@ @g')
   elif [ $rate -eq 0 ]; then
-     dum_en=$(sqlite3 ${tsdirhl}/MINs/norep/minnrhl.db "select energy,g from minnrhl where name='$name'" | sed 's@|@ @g')
+     dum_en=$(sqlite3 ${tsdirhl}/MINs/norep/minnrhl.db "select energy,g from minnrhl where name='$name_sql'" | sed 's@|@ @g')
   fi
   echo "$dum_min0"   >tmp_en
   echo "$dum_en"    >>tmp_en
@@ -137,9 +142,12 @@ do
 ##keep this for the moment
     name0=MIN$i
     names=MIN${i}_${name2}
+    name0_sql=$(sql_quote "$name0")
+    names_sql=$(sql_quote "$names")
+    namenr_sql=$(sql_quote "$namenr")
 ##insert data into mins
     sqlite3 "" "attach '${tsdirhl}/MINs/norep/minnrhl.db' as minnrhl; attach '${tsdirhl}/MINs/SORTED/minshl.db' as minshl;
-    insert into minshl (natom,name,lname,energy,zpe,g,geom,freq) select natom,'$name0','$names',energy,zpe,g,geom,freq from minnrhl where name='$namenr';"
+    insert into minshl (natom,name,lname,energy,zpe,g,geom,freq) select natom,'$name0_sql','$names_sql',energy,zpe,g,geom,freq from minnrhl where name='$namenr_sql';"
 done
 
 sed 's/_min/ min/g' $tsdirhl/MINs/SORTED/MINlist_sorted | awk '{print $1,$2,$4,$5}' > $tsdirhl/MINs/SORTED/MINlist_sorted.log

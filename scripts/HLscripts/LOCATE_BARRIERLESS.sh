@@ -73,7 +73,10 @@ do
       name=PR${id}_min_diss_${nbl}
       named=min_diss_${nbl}
       geom="$(cat tmp_geom | awk 'NR>2{print $0}')"
-      sqlite3 tsdir${tag}_${molecule}/PRODs/prodhl.db "insert into prodhl (natom,name,geom,formula) values ($natom,'$name','$geom','$formula0');"
+      name_sql=$(sql_quote "$name")
+      geom_sql=$(sql_quote "$geom")
+      formula_sql=$(sql_quote "$formula0")
+      sqlite3 tsdir${tag}_${molecule}/PRODs/prodhl.db "insert into prodhl (natom,name,geom,formula) values ($natom,'$name_sql','$geom_sql','$formula_sql');"
       echo "PROD ${id} ${named}.rxyz" >> tsdir${tag}_${molecule}/PRODs/PRlist
       echo "$nbl energy_rel MIN $equal <-->  PROD ${id}" >> tsdir${tag}_${molecule}/KMC/RXN_barrless0
       chkfilef=diss_${nbl}

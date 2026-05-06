@@ -106,7 +106,9 @@ do
     else
        ${program_hl}_input
     fi
-    echo -e "insert or ignore into gaussian values (NULL,'$name','$inp_hl');\n.quit" | sqlite3 ${tsdirhl}/inputs.db
+    name_sql=$(sql_quote "$name")
+    inp_sql=$(sql_quote "$inp_hl")
+    echo -e "insert or ignore into gaussian values (NULL,'$name_sql','$inp_sql');\n.quit" | sqlite3 ${tsdirhl}/inputs.db
   fi
 done 
 echo "$m TS opt calculations"
@@ -137,7 +139,9 @@ else
    else
       ${program_hl}_input
    fi
-   echo -e "insert or ignore into gaussian values (NULL,'min0','$inp_hl');\n.quit" | sqlite3 ${tsdirhl}/inputs.db
+   name_sql=$(sql_quote "min0")
+   inp_sql=$(sql_quote "$inp_hl")
+   echo -e "insert or ignore into gaussian values (NULL,'$name_sql','$inp_sql');\n.quit" | sqlite3 ${tsdirhl}/inputs.db
 fi
 #Perform m parallel calculations
 echo Performing a total of $m ts opt calculations

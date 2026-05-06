@@ -1375,6 +1375,16 @@ function validate_xyz {
   fi
 }
 
+function write_xyz_geom {
+  local file="$1"
+  local natom="$2"
+  local geom="$3"
+  {
+    printf '%s\n\n' "$natom"
+    printf '%s\n' "$geom" | awk 'NF==0 {next} NF==4 {print; next} {for(i=1;i<=NF;i+=4){if(i+3<=NF) print $i,$(i+1),$(i+2),$(i+3)}}'
+  } > "$file"
+}
+
 function get_data_hl_output {
 if [ "$program_hl" = "g09" ] || [ "$program_hl" = "g16" ];then
    energy=$(get_energy_g09_$HLcalc.sh $tsdirhl/${name}.log $noHLcalc)
@@ -1385,6 +1395,7 @@ if [ "$program_hl" = "g09" ] || [ "$program_hl" = "g16" ];then
    geom="$(get_geom_g09.sh $tsdirhl/${name}.log)"
    freq="$(get_freq_g09.sh $tsdirhl/${name}.log)"
    sigma=$(awk 'BEGIN{IGNORECASE=1};/SYMMETRY NUMBER/{print $NF;exit}' $tsdirhl/${name}.log | sed 's@\.@@' )
+   if [ -z "$sigma" ]; then sigma=1; fi
 elif [ "$program_hl" = "qcore" ];then
    energy=$(awk 'NR==1{print $2}' $tsdirhl/${name}.log)
    zpe=$(awk '/ZPE/{printf "%12.2f",$2*627.51}' $tsdirhl/${name}.log)
@@ -1458,9 +1469,7 @@ echo "Screening" > $tsdirhl/TSs/tslist_screened
 
 function screen_ts_hl {
 echo ts$number"_out data"> ${tsdirhl}/TSs/${name}_data
-echo $natom >mingeom.xyz
-echo '' >>mingeom.xyz
-echo "$geom" >> mingeom.xyz
+write_xyz_geom mingeom.xyz "$natom" "$geom"
 validate_xyz mingeom.xyz $natom
 createMat.py mingeom.xyz 2 $nA
 echo "1 $natom" | cat - ConnMat | sprint.exe >sprint.out
@@ -1485,9 +1494,7 @@ cat ${tsdirhl}/TSs/${name}_data >> $tsdirhl/TSs/tslist_screened
 }
 
 function screen_min_hl {
-echo  $natom > mingeom.xyz
-echo '' >> mingeom.xyz
-echo "$geom" >> mingeom.xyz
+write_xyz_geom mingeom.xyz "$natom" "$geom"
 validate_xyz mingeom.xyz $natom
 echo "1" $natom > sprint.dat
 createMat.py mingeom.xyz 3 $nA
@@ -1507,8 +1514,10 @@ then
    ((npro=npro+1))
    echo "Products=" $ndis $name
    namepr=PR${npro}_${name}
+   namepr_sql=$(sql_quote "$namepr")
+   name_sql=$(sql_quote "$name")
 ###remove this later on
-   sqlite3 "" "attach '${tsdirhl}/MINs/minhl.db' as minhl; attach '${tsdirhl}/PRODs/prodhl.db' as prodhl; insert into prodhl (natom,name,energy,zpe,g,geom,freq) select natom,'$namepr',energy,zpe,g,geom,freq from minhl where name='$name';delete from minhl where name='$name'"
+   sqlite3 "" "attach '${tsdirhl}/MINs/minhl.db' as minhl; attach '${tsdirhl}/PRODs/prodhl.db' as prodhl; insert into prodhl (natom,name,energy,zpe,g,geom,freq) select natom,'$namepr_sql',energy,zpe,g,geom,freq from minhl where name='$name_sql';delete from minhl where name='$name_sql'"
    echo "PROD" $npro $name.rxyz >> $tsdirhl/PRODs/PRlist
 else
    ((nmin=nmin+1))
@@ -1581,7 +1590,9 @@ do
 ##insert data into minnrhl.db from minhl.db
 #  cp ${tsdirhl}/MINs/${name} ${tsdirhl}/MINs/norep/min${number}_${name}
 ##
-  sqlite3 "" "attach '${tsdirhl}/MINs/minhl.db' as minhl; attach '${tsdirhl}/MINs/norep/minnrhl.db' as minnrhl; insert into minnrhl (natom,name,energy,zpe,g,geom,freq,sigma) select natom,'$namenr',energy,zpe,g,geom,freq,sigma from minhl where name='$namenrxyz';"
+  namenr_sql=$(sql_quote "$namenr")
+  namenrxyz_sql=$(sql_quote "$namenrxyz")
+  sqlite3 "" "attach '${tsdirhl}/MINs/minhl.db' as minhl; attach '${tsdirhl}/MINs/norep/minnrhl.db' as minnrhl; insert into minnrhl (natom,name,energy,zpe,g,geom,freq,sigma) select natom,'$namenr_sql',energy,zpe,g,geom,freq,sigma from minhl where name='$namenrxyz_sql';"
 done
 ###
 ((nfin=nmin-nrm))

@@ -53,7 +53,8 @@ do
    fi
    line[$number]=$(awk '{if($2=="'$number'") print $0}' ${tsdirhl}/PRODs/PRlist)
    name0=$(echo $name | sed 's@_min@ min@g' | awk '{print $2}')
-   formula="$(sqlite3 ${tsdirhl}/PRODs/prodhl.db "select natom,geom from prodhl where name='$name'" | sed 's@|@\n\n@g' | FormulaPROD.sh)"
+   name_sql=$(sql_quote "$name")
+   formula="$(sqlite3 ${tsdirhl}/PRODs/prodhl.db "select natom,geom from prodhl where name='$name_sql'" | sed 's@|@\n\n@g' | FormulaPROD.sh)"
    nfrag=$(awk '{print $1}' tmp_nf)
    echo "Number: $number Name: $name # of frags: $nfrag"
    echo line number "${line[$number]}"
@@ -108,7 +109,8 @@ do
 ###
       chargen=$(echo $charge | sed 's/-/m/')
       sqlnamep=${name}.q${chargen}.m${mult}
-      nisql="$(sqlite3 $dir/inputs.db "select name from gaussian where name like '%$sqlnamep%'")"
+      sqlnamep_sql=$(sql_quote "$sqlnamep")
+      nisql="$(sqlite3 $dir/inputs.db "select name from gaussian where name like '%$sqlnamep_sql%'")"
       ni="$(echo "$nisql" | awk 'BEGIN{FS="-"};{name=$1;n=$2};END{print n+1}')"
 
       nn=${name}.q${chargen}.m${mult}-$ni
@@ -150,7 +152,9 @@ do
             inp_hl="salir"
          fi
       fi
-      echo -e "insert into gaussian values (NULL,'$nn','$inp_hl');\n.quit" | sqlite3 ${dir}/inputs.db
+      nn_sql=$(sql_quote "$nn")
+      inp_sql=$(sql_quote "$inp_hl")
+      echo -e "insert into gaussian values (NULL,'$nn_sql','$inp_sql');\n.quit" | sqlite3 ${dir}/inputs.db
    done
 ####
 #Make PRlist_frag file

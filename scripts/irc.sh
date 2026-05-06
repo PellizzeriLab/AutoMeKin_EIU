@@ -128,14 +128,12 @@ else
       freq="$(awk '/Freq/{flag=1;next}/Lowest/{flag=0}flag' $tsdirll/MINs/min0.out)"
       sigma=1
    fi
-   echo $natom > mingeom.xyz
-   echo "" >> mingeom.xyz
    if [ -z "$geom" ]; then
       echo "ERROR: failed to extract geometry from ${molecule}_freq.out"
       echo "       check ${molecule}_freq.out and the mopac output for errors"
       exit 1
    fi
-   echo "$geom" >> mingeom.xyz
+   write_xyz_geom mingeom.xyz "$natom" "$geom"
    if [ $(wc -l < mingeom.xyz) -lt $((natom + 2)) ]; then
       echo "ERROR: incomplete geometry written to mingeom.xyz (expected $((natom + 2)) lines)"
       exit 1

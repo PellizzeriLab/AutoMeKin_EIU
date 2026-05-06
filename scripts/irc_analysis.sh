@@ -40,7 +40,8 @@ do
     fi
   fi
 
-  if [ $(sqlite3 ${tsdirll}/TSs/ts.db "select exists(select name from ts where name='$name')") -eq 1 ]; then continue ; fi
+  name_sql=$(sql_quote "$name")
+  if [ $(sqlite3 ${tsdirll}/TSs/ts.db "select exists(select name from ts where name='$name_sql')") -eq 1 ]; then continue ; fi
 
 #First the tss
   if [ "$program_opt" = "g09" ] || [ "$program_opt" = "g16" ]; then
@@ -56,6 +57,7 @@ do
      e=$(awk 'BEGIN{e=0};/HEAT OF FORMATION =/{e=$5};END{print e}' $tsdirll/TSs/${name}_thermo.out )
      zpe=$(awk 'BEGIN{zpe=0};/          ZERO POINT ENERGY/{zpe=$4};END{print zpe}' $tsdirll/TSs/${name}_thermo.out )
      sigma=$(awk '/SYMMETRY NUMBER/{print $NF;exit}' $tsdirll/TSs/${name}_thermo.out)
+     if [ -z "$sigma" ]; then sigma=1; fi
      g_corr=$(awk 'BEGIN{zpe=0;h=0;s=0;t='$temperature'}
         /          ZERO POINT ENERGY/{zpe=$4}
         /CALCULATED THERMODYNAMIC PROPERTIES/{ok=1}
@@ -70,8 +72,11 @@ do
      sigma=1
      g_corr=$(awk '/Gibbs/{gibbs=$NF};END{print gibbs*627.51}' $tsdirll/TSs/${name}_thermo.out )
   fi
+  name_sql=$(sql_quote "$name")
+  geom_sql=$(sql_quote "$geom")
+  freq_sql=$(sql_quote "$freq")
 ##insert into ts.db
-  sqlite3 ${tsdirll}/TSs/ts.db "insert into ts (natom,name,energy,zpe,g,geom,freq,sigma) values ($natom,'$name',$e,$zpe,$g_corr,'$geom','$freq',$sigma);"
+  sqlite3 ${tsdirll}/TSs/ts.db "insert into ts (natom,name,energy,zpe,g,geom,freq,sigma) values ($natom,'$name_sql',$e,$zpe,$g_corr,'$geom_sql','$freq_sql',$sigma);"
 ##insert into ts.db
 
 #Now the minima
@@ -83,6 +88,7 @@ do
      ef=$(awk 'BEGIN{e=0};/HEAT OF FORMATION =/{e=$5};END{print e}' $tsdirll/IRC/${namef}.out )
      zpef=$(awk 'BEGIN{zpe=0};/          ZERO POINT ENERGY/{zpe=$4};END{print zpe}' $tsdirll/IRC/${namef}.out )
      sigmaf=$(awk '/SYMMETRY NUMBER/{print $NF;exit}' $tsdirll/IRC/${namef}.out)
+     if [ -z "$sigmaf" ]; then sigmaf=1; fi
      g_corrf=$(awk 'BEGIN{zpe=0;h=0;s=0;t='$temperature'}
         /          ZERO POINT ENERGY/{zpe=$4}
         /CALCULATED THERMODYNAMIC PROPERTIES/{ok=1}
@@ -118,9 +124,7 @@ do
      fi
   fi
 ##min or prod##
-  echo $natom > mingeom.xyz
-  echo "" >> mingeom.xyz  
-  echo "$geomf" >> mingeom.xyz
+  write_xyz_geom mingeom.xyz "$natom" "$geomf"
   createMat.py mingeom.xyz 3 $nA
   echo "1" $natom | cat - ConnMat |  sprint2.exe >sprint.out
   paste <(awk 'NF==4{print $1}' mingeom.xyz) <(deg.sh) >deg.out
@@ -128,15 +132,23 @@ do
   echo $ef > ${tsdirll}/MINs/${namef}_data
   format.sh $namef ${tsdirll}/MINs ${nfrag_th}
   datas="$(cat ${tsdirll}/MINs/${namef}_data)"
-  sqlite3 ${tsdirll}/MINs/data.db "insert into data (name,datas) values ('$namef','$datas');"
+  namef_sql=$(sql_quote "$namef")
+  datas_sql=$(sql_quote "$datas")
+  sqlite3 ${tsdirll}/MINs/data.db "insert into data (name,datas) values ('$namef_sql','$datas_sql');"
   ndis=$(awk '{ndis=$1};END{print ndis}' ${tsdirll}/MINs/${namef}_data )
 ##insert data into prod.db or min.db
   if [[ ("$ndis" -gt "1") ]] && [ "$namef" != "min0_0" ]; then
      npro=$(sqlite3 ${tsdirll}/PRODs/prod.db "select max(id) from prod" | awk '{print $1+1}')
      namepr=PR${npro}_${namef}
-     sqlite3 ${tsdirll}/PRODs/prod.db "insert into prod (natom,name,energy,zpe,g,geom,freq) values ($natom,'$namepr',$ef,$zpef,$g_corrf,'$geomf','$freqf');"
+     namepr_sql=$(sql_quote "$namepr")
+     geomf_sql=$(sql_quote "$geomf")
+     freqf_sql=$(sql_quote "$freqf")
+     sqlite3 ${tsdirll}/PRODs/prod.db "insert into prod (natom,name,energy,zpe,g,geom,freq) values ($natom,'$namepr_sql',$ef,$zpef,$g_corrf,'$geomf_sql','$freqf_sql');"
   else
-     sqlite3 ${tsdirll}/MINs/min.db "insert into min (natom,name,energy,zpe,g,geom,freq,sigma) values ($natom,'$namef',$ef,$zpef,$g_corrf,'$geomf','$freqf',$sigmaf);"
+     namef_sql=$(sql_quote "$namef")
+     geomf_sql=$(sql_quote "$geomf")
+     freqf_sql=$(sql_quote "$freqf")
+     sqlite3 ${tsdirll}/MINs/min.db "insert into min (natom,name,energy,zpe,g,geom,freq,sigma) values ($natom,'$namef_sql',$ef,$zpef,$g_corrf,'$geomf_sql','$freqf_sql',$sigmaf);"
   fi
 ##min or prod##
 
@@ -148,6 +160,7 @@ do
      er=$(awk 'BEGIN{e=0};/HEAT OF FORMATION =/{e=$5};END{print e}' $tsdirll/IRC/${namer}.out )
      zper=$(awk 'BEGIN{zpe=0};/          ZERO POINT ENERGY/{zpe=$4};END{print zpe}' $tsdirll/IRC/${namer}.out )
      sigmar=$(awk '/SYMMETRY NUMBER/{print $NF;exit}' $tsdirll/IRC/${namer}.out)
+     if [ -z "$sigmar" ]; then sigmar=1; fi
      g_corrr=$(awk 'BEGIN{zpe=0;h=0;s=0;t='$temperature'}
         /          ZERO POINT ENERGY/{zpe=$4}
         /CALCULATED THERMODYNAMIC PROPERTIES/{ok=1}
@@ -184,9 +197,7 @@ do
      fi
   fi
 ##min or prod##
-  echo $natom > mingeom.xyz
-  echo "" >> mingeom.xyz  
-  echo "$geomr" >> mingeom.xyz
+  write_xyz_geom mingeom.xyz "$natom" "$geomr"
   createMat.py mingeom.xyz 3 $nA
   echo "1" $natom | cat - ConnMat |  sprint2.exe >sprint.out
   paste <(awk 'NF==4{print $1}' mingeom.xyz) <(deg.sh) >deg.out
@@ -194,15 +205,23 @@ do
   echo $er > ${tsdirll}/MINs/${namer}_data
   format.sh $namer ${tsdirll}/MINs ${nfrag_th}
   datas="$(cat ${tsdirll}/MINs/${namer}_data)"
-  sqlite3 ${tsdirll}/MINs/data.db "insert into data (name,datas) values ('$namer','$datas');"
+  namer_sql=$(sql_quote "$namer")
+  datas_sql=$(sql_quote "$datas")
+  sqlite3 ${tsdirll}/MINs/data.db "insert into data (name,datas) values ('$namer_sql','$datas_sql');"
   ndis=$(awk '{ndis=$1};END{print ndis}' ${tsdirll}/MINs/${namer}_data )
 ##insert data into prod.db or min.db
   if [[ ("$ndis" -gt "1") ]] && [ "$namer" != "min0_0" ]; then
      npro=$(sqlite3 ${tsdirll}/PRODs/prod.db "select max(id) from prod" | awk '{print $1+1}')
      namepr=PR${npro}_${namer}
-     sqlite3 ${tsdirll}/PRODs/prod.db "insert into prod (natom,name,energy,zpe,g,geom,freq) values ($natom,'$namepr',$er,$zper,$g_corrr,'$geomr','$freqr');"
+     namepr_sql=$(sql_quote "$namepr")
+     geomr_sql=$(sql_quote "$geomr")
+     freqr_sql=$(sql_quote "$freqr")
+     sqlite3 ${tsdirll}/PRODs/prod.db "insert into prod (natom,name,energy,zpe,g,geom,freq) values ($natom,'$namepr_sql',$er,$zper,$g_corrr,'$geomr_sql','$freqr_sql');"
   else
-     sqlite3 ${tsdirll}/MINs/min.db "insert into min (natom,name,energy,zpe,g,geom,freq,sigma) values ($natom,'$namer',$er,$zper,$g_corrr,'$geomr','$freqr',$sigmar);"
+     namer_sql=$(sql_quote "$namer")
+     geomr_sql=$(sql_quote "$geomr")
+     freqr_sql=$(sql_quote "$freqr")
+     sqlite3 ${tsdirll}/MINs/min.db "insert into min (natom,name,energy,zpe,g,geom,freq,sigma) values ($natom,'$namer_sql',$er,$zper,$g_corrr,'$geomr_sql','$freqr_sql',$sigmar);"
   fi
 ##min or prod##
 done

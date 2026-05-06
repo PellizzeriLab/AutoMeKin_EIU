@@ -115,7 +115,8 @@ m=0
 sqlite3 ${tsdirhl}/IRC/inputs.db "drop table if exists gaussian; create table gaussian (id INTEGER PRIMARY KEY,name TEXT, input TEXT, unique (name));"
 for i in $(sqlite3 ${tsdirhl}/TSs/tshl.db "select name from tshl")
 do
-  en_ts=$(sqlite3 ${tsdirhl}/TSs/tshl.db "select energy,zpe from tshl where name='$i'" | sed 's@|@ @g' | awk '{printf "%.10f\n",$1*627.51+$2}')
+  i_sql=$(sql_quote "$i")
+  en_ts=$(sqlite3 ${tsdirhl}/TSs/tshl.db "select energy,zpe from tshl where name='$i_sql'" | sed 's@|@ @g' | awk '{printf "%.10f\n",$1*627.51+$2}')
   deltg="$(echo "$en_min0" "$en_ts" | awk '{printf "%.10f\n",$2-$1}')"
   if ! is_float "$deltg" || ! is_float "$maxen"; then
     echo "WARNING: invalid IRC energy comparison: deltg='$deltg' maxen='$maxen'"
@@ -134,8 +135,9 @@ do
     echo "IRC completed for $i"
   elif [ $res -eq 0 ]; then
     echo "The energy of TS $i is: $deltg, which is greater than the threshold: $maxen" 
+    i_sql=$(sql_quote "$i")
     sqlite3 "" "attach '${tsdirhl}/TSs/tshl.db' as tshl; attach '${tsdirhl}/TSs/tshlhe.db' as tshlhe;
-    insert into tshlhe (natom,name,energy,zpe,g,geom,freq,number) select natom,name,energy,zpe,g,geom,freq,number from tshl where name='$i';delete from tshl where name='$i';"
+    insert into tshlhe (natom,name,energy,zpe,g,geom,freq,number) select natom,name,energy,zpe,g,geom,freq,number from tshl where name='$i_sql';delete from tshl where name='$i_sql';"
   else
     ((m=m+1))
     echo "Submit IRC calc for" $i

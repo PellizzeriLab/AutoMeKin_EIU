@@ -170,7 +170,11 @@ if [ -f tsdir${tag}_${molecule}/min_diss.inp ]; then
                g=0
                freq=""
                name=PR${id}_min_diss_${i}_${chan}
-               sqlite3 tsdir${tag}_${molecule}/PRODs/prod.db "insert into prod (natom,name,energy,zpe,g,geom,freq,formula) values ($natom,'$name',$pea,$zpe,$g,'$geom','$freq','$formula0');"
+               name_sql=$(sql_quote "$name")
+               geom_sql=$(sql_quote "$geom")
+               freq_sql=$(sql_quote "$freq")
+               formula_sql=$(sql_quote "$formula0")
+               sqlite3 tsdir${tag}_${molecule}/PRODs/prod.db "insert into prod (natom,name,energy,zpe,g,geom,freq,formula) values ($natom,'$name_sql',$pea,$zpe,$g,'$geom_sql','$freq_sql','$formula_sql');"
                echo "PROD ${id} min_diss_${i}_${chan}.rxyz" >> tsdir${tag}_${molecule}/PRODs/PRlist 
                echo $pea $formula "$tagpr"  >> tsdir${tag}_${molecule}/PRODs/PRlist_tags.log
                echo "$nbl $pe MIN $i <-->  PROD ${id}" >> tsdir${tag}_${molecule}/KMC/RXN_barrless

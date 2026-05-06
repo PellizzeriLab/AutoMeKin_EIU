@@ -146,7 +146,9 @@ do
 ##remove this later on
      namepr="PR"$npro"_"$name
 ##EMNinsert into prodhl.db
-     sqlite3 ${tsdirhl}/PRODs/prodhl.db "insert into prodhl (natom,name,energy,zpe,g,geom,freq) values ($natom,'$namepr',0,0,0,'$geom',0);"
+     namepr_sql=$(sql_quote "$namepr")
+     geom_sql=$(sql_quote "$geom")
+     sqlite3 ${tsdirhl}/PRODs/prodhl.db "insert into prodhl (natom,name,energy,zpe,g,geom,freq) values ($natom,'$namepr_sql',0,0,0,'$geom_sql',0);"
      lp=$(awk 'BEGIN{lp=1};/'$name'/{lp=0};END{print lp}' $tsdirhl/PRODs/PRlist )
      if  [[ ("$lp" -eq "1") ]]
      then

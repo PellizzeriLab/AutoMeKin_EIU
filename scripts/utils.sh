@@ -45,6 +45,26 @@ function print_ref {
    echo "==================================="
 }
 
+function sql_quote {
+   local s="$1"
+   s="${s//$'\r'/ }"
+   s="${s//$'\n'/ }"
+   s="$(printf '%s' "$s" | sed "s/'/''/g")"
+   printf '%s' "$s"
+}
+
+function sql_number {
+   local v="$1"
+   v="${v//$'\r'/ }"
+   v="${v//$'\n'/ }"
+   v="$(printf '%s' "$v" | awk '{$1=$1; print $1}')"
+   if printf '%s' "$v" | grep -Eq '^[+-]?[0-9]+([.][0-9]+)?([eE][+-]?[0-9]+)?$'; then
+      printf '%s' "$v"
+   else
+      printf '0'
+   fi
+}
+
 
 #Function to submit jobs using slurm
 function slurm {
@@ -1353,7 +1373,13 @@ if [ "$program_hl" = "g09" ] || [ "$program_hl" = "g16" ] ;then
    if [ -z "$zpe" ]; then zpe=0; fi
    if [ -z "$g" ]; then g=0; fi
    freq="$(get_freq_g09.sh $i)"
-   sqlite3 ${tsdirhl}/MINs/minhl.db "insert or ignore into minhl (natom,name,energy,zpe,g,geom,freq) values ($natom,'$name',$energy,$zpe,$g,'$geom','$freq');"
+   energy=$(sql_number "$energy")
+   zpe=$(sql_number "$zpe")
+   g=$(sql_number "$g")
+   geom=$(sql_quote "$geom")
+   freq=$(sql_quote "$freq")
+   local name_sql=$(sql_quote "$name")
+   sqlite3 ${tsdirhl}/MINs/minhl.db "insert or ignore into minhl (natom,name,energy,zpe,g,geom,freq) values ($natom,'$name_sql',$energy,$zpe,$g,'$geom','$freq');"
 elif [ "$program_hl" = "qcore" ];then
    energy=$(awk 'NR==1{print $2}' $i)
    if [ -f ${tsdirhl}/IRC/${name}_opt.xyz ]; then
@@ -1366,7 +1392,13 @@ elif [ "$program_hl" = "qcore" ];then
       zpe=$(awk '/ZPE/{printf "%12.2f",$2*627.51}' $i)
       g=$(awk '/Gibbs free energy/{print $4}' $i)
       freq="$(awk '/Freq/{for(i=1;i<=1000;i++) {getline;if(NF>1) exit;print $1}}' $i)"
-      sqlite3 ${tsdirhl}/MINs/minhl.db "insert or ignore into minhl (natom,name,energy,zpe,g,geom,freq) values ($natom,'$name',$energy,$zpe,$g,'$geom','$freq');"
+      energy=$(sql_number "$energy")
+      zpe=$(sql_number "$zpe")
+      g=$(sql_number "$g")
+      geom=$(sql_quote "$geom")
+      freq=$(sql_quote "$freq")
+      local name_sql=$(sql_quote "$name")
+      sqlite3 ${tsdirhl}/MINs/minhl.db "insert or ignore into minhl (natom,name,energy,zpe,g,geom,freq) values ($natom,'$name_sql',$energy,$zpe,$g,'$geom','$freq');"
    fi
 fi
 }

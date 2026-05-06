@@ -53,7 +53,13 @@ echo "Moving min0 to its final location"
 name=min0
 get_data_hl_output
 
-sqlite3 ${tsdirhl}/MINs/minhl.db "insert into minhl (natom,name,energy,zpe,g,geom,freq,sigma) values ($natom,'$name',$energy,$zpe,$g,'$geom','$freq',$sigma);"
+name_sql=$(sql_quote "$name")
+geom_sql=$(sql_quote "$geom")
+freq_sql=$(sql_quote "$freq")
+energy=$(sql_number "$energy")
+zpe=$(sql_number "$zpe")
+g=$(sql_number "$g")
+sqlite3 ${tsdirhl}/MINs/minhl.db "insert into minhl (natom,name,energy,zpe,g,geom,freq,sigma) values ($natom,'$name_sql',$energy,$zpe,$g,'$geom_sql','$freq_sql',$sigma);"
 
 # Now we do things specific of IRC 
 set_up_irc_stuff
@@ -79,7 +85,13 @@ do
        ((nts=nts+1))
        #insert into tshl table
        get_data_hl_output 
-       sqlite3 ${tsdirhl}/TSs/tshl.db "insert into tshl (natom,name,energy,zpe,g,geom,freq,number,sigma) values ($natom,'$name',$energy,$zpe,$g,'$geom','$freq',$number,$sigma);"
+       name_sql=$(sql_quote "$name")
+       geom_sql=$(sql_quote "$geom")
+       freq_sql=$(sql_quote "$freq")
+       energy=$(sql_number "$energy")
+       zpe=$(sql_number "$zpe")
+       g=$(sql_number "$g")
+       sqlite3 ${tsdirhl}/TSs/tshl.db "insert into tshl (natom,name,energy,zpe,g,geom,freq,number,sigma) values ($natom,'$name_sql',$energy,$zpe,$g,'$geom_sql','$freq_sql',$number,$sigma);"
        #screen the list to remove duplicates
        screen_ts_hl
     else

@@ -5,12 +5,19 @@ sharedir=${AMK}/share
 cwd=$PWD
 inputfile='amk.dat'
 
-if [ ! -s "$1" ]; then
+if [ -n "$1" ] && [ -f "$1" ]; then
+  cp "$1" tmp_file
+elif [ -z "$1" ] && [ ! -t 0 ]; then
+  cat > tmp_file
+else
   echo "FormulaPROD.sh: input file '$1' is missing or empty" >&2
   exit 1
 fi
-cp "$1" tmp_file
-awk 'BEGIN{print "Labels"};NF==4{print $1}' "$1" > labels
+if [ ! -s tmp_file ]; then
+  echo "FormulaPROD.sh: input is empty, cannot determine formula" >&2
+  exit 1
+fi
+awk 'BEGIN{print "Labels"};NF==4{print $1}' tmp_file > labels
 file=tmp_file
 ##
 read_input

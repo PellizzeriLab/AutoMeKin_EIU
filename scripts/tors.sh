@@ -277,7 +277,7 @@ do
             geo="$(get_geom_mopac.sh ${name}.out | awk '{if(NF==4) print $0};END{print ""}')"
             level=ll
             g09_input
-            echo -e "$inp_hl\n\n" > ${name}.dat
+            printf '%s\n\n' "$inp_hl" > ${name}.dat
             if [ "$program_opt" = "g09" ] ; then
                g09 <${name}.dat >${name}.log && gauss_line=$(echo $LINENO)
             elif [ "$program_opt" = "g16" ] ; then

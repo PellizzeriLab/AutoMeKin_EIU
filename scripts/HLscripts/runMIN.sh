@@ -4,20 +4,24 @@ cd $2
 #minf
 name="$(sqlite3 inputs.db "select name from gaussian where id=$1")"
 if [ "$3" = "g09" ]; then
-   echo -e "$(sqlite3 inputs.db "select input from gaussian where id=$1")\n\n" >${name}.com
+   sqlite3 inputs.db "select input from gaussian where id=$1" >${name}.com
+   printf '\n\n' >>${name}.com
    g09 <${name}.com &>${name}.log
    t=$(awk 'BEGIN{t=0};/Error termination via/{t=1};END{print t}' ${name}.log)
    if [ $t -eq 1 ]; then
-      echo -e "$(sqlite3 inputs.db "select input from gaussian where id=$1")\n\n" | sed 's/calcall,noraman/cartesian,maxcycle=100,calcall,noraman/g' >${name}.com
+      sqlite3 inputs.db "select input from gaussian where id=$1" | sed 's/calcall,noraman/cartesian,maxcycle=100,calcall,noraman/g' >${name}.com
+      printf '\n\n' >>${name}.com
       g09 <${name}.com &> ${name}.log
    fi
    rm ${name}.com
 elif [ "$3" = "g16" ]; then
-   echo -e "$(sqlite3 inputs.db "select input from gaussian where id=$1")\n\n" >${name}.com
+   sqlite3 inputs.db "select input from gaussian where id=$1" >${name}.com
+   printf '\n\n' >>${name}.com
    g16 <${name}.com &>${name}.log
    t=$(awk 'BEGIN{t=0};/Error termination via/{t=1};END{print t}' ${name}.log)
    if [ $t -eq 1 ]; then
-      echo -e "$(sqlite3 inputs.db "select input from gaussian where id=$1")\n\n" | sed 's/calcall,noraman/cartesian,maxcycle=100,calcall,noraman/g' >${name}.com
+      sqlite3 inputs.db "select input from gaussian where id=$1" | sed 's/calcall,noraman/cartesian,maxcycle=100,calcall,noraman/g' >${name}.com
+      printf '\n\n' >>${name}.com
       g16 <${name}.com &> ${name}.log
    fi
    rm ${name}.com

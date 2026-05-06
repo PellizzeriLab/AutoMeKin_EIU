@@ -242,7 +242,7 @@ do
           geo="$(echo "$geo_pes" | awk 'NF==4{print $0};END{print ""}')"
           level=ll
           g09_input
-          echo -e "$inp_hl\n\n" > ts_opt/${name}.dat
+          printf '%s\n\n' "$inp_hl" > ts_opt/${name}.dat
 	  if [ "$program_opt" = "g09" ]; then
              g09 <ts_opt/${name}.dat >ts_opt/${name}.log && gauss_line=$(echo $LINENO)
 	  elif [ "$program_opt" = "g16" ]; then

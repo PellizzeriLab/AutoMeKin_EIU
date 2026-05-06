@@ -2,7 +2,9 @@
 cd "$2"
 name="$(sqlite3 inputs.db "select name from gaussian where id=$1")"
 inp="$(sqlite3 inputs.db "select input from gaussian where id=$1")"
-echo -e "$inp\n\n" > ${name}.com
+printf '%s
+
+' "$inp" > "${name}.com"
 if [[ "$inp" == duplicate:* ]]; then
    orig="${inp#duplicate:}"
    if [[ "$orig" =~ ^[A-Za-z0-9._-]+$ ]] && [[ "$orig" != *".."* ]]; then
@@ -17,13 +19,14 @@ elif [ "$inp" != "salir" ]; then
       t=$(awk 'BEGIN{t=0};/Error termination via/{t=1};END{print t}' ${name}.log)
       if [ $t -eq 1 ]; then
       #Constructing new input file (cartesian opt)
-        echo -e "$inp\n\n" | sed 's/calcfc/cartesian,maxcycle=100,calcfc/;s/calcall/cartesian,maxcycle=100,calcall/' > ${name}.com
+        printf '%s\n\n' "$inp" | sed 's/calcfc/cartesian,maxcycle=100,calcfc/;s/calcall/cartesian,maxcycle=100,calcall/' > ${name}.com
         g09 <${name}.com &> ${name}.log
       fi
       t=$(awk 'BEGIN{t=0};/Error termination via/{t=1};END{print t}' ${name}.log)
       if [ $t -eq 1 ]; then
       #Constructing new input file (cartesian nosymm)
-        echo -e "$inp\n\n" | sed 's/calcfc,noraman)/cartesian,maxcycle=100,calcfc,noraman) nosymm/;s/calcall,noraman)/cartesian,maxcycle=100,calcall,noraman) nosymm/' > ${name}.com
+        sqlite3 inputs.db "select input from gaussian where id=$1" | sed 's/calcfc,noraman)/cartesian,maxcycle=100,calcfc,noraman) nosymm/;s/calcall,noraman)/cartesian,maxcycle=100,calcall,noraman) nosymm/' > ${name}.com
+        printf '\n\n' >> ${name}.com
         g09 <${name}.com &> ${name}.log
       fi
    elif [ "$3" = "g16" ];then
@@ -31,13 +34,15 @@ elif [ "$inp" != "salir" ]; then
       t=$(awk 'BEGIN{t=0};/Error termination via/{t=1};END{print t}' ${name}.log)
       if [ $t -eq 1 ]; then
       #Constructing new input file (cartesian opt)
-        echo -e "$inp\n\n" | sed 's/calcfc/cartesian,maxcycle=100,calcfc/;s/calcall/cartesian,maxcycle=100,calcall/' > ${name}.com
+        sqlite3 inputs.db "select input from gaussian where id=$1" | sed 's/calcfc/cartesian,maxcycle=100,calcfc/;s/calcall/cartesian,maxcycle=100,calcall/' > ${name}.com
+        printf '\n\n' >> ${name}.com
         g16 <${name}.com &> ${name}.log
       fi
       t=$(awk 'BEGIN{t=0};/Error termination via/{t=1};END{print t}' ${name}.log)
       if [ $t -eq 1 ]; then
       #Constructing new input file (cartesian nosymm)
-        echo -e "$inp\n\n" | sed 's/calcfc,noraman)/cartesian,maxcycle=100,calcfc,noraman) nosymm/;s/calcall,noraman)/cartesian,maxcycle=100,calcall,noraman) nosymm/' > ${name}.com
+        sqlite3 inputs.db "select input from gaussian where id=$1" | sed 's/calcfc,noraman)/cartesian,maxcycle=100,calcfc,noraman) nosymm/;s/calcall,noraman)/cartesian,maxcycle=100,calcall,noraman) nosymm/' > ${name}.com
+        printf '\n\n' >> ${name}.com
         g16 <${name}.com &> ${name}.log
       fi
    elif [ "$3" = "qcore" ];then

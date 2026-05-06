@@ -1344,6 +1344,37 @@ elif [ "program_hl" = "g16" ]; then
 fi
 }
 
+function validate_xyz {
+  local file="$1"
+  local expected="$2"
+  if [ ! -s "$file" ]; then
+    echo "ERROR: '$file' is empty or missing" >&2
+    return 1
+  fi
+  local header=$(awk 'NR==1{print $1; exit}' "$file")
+  local natoms=$(awk 'NR>2 && NF==4{count++} END{print count+0}' "$file")
+  if ! [[ "$header" =~ ^[0-9]+$ ]] || [ "$header" -le 0 ]; then
+    echo "ERROR: invalid atom count header in '$file': '$header'" >&2
+    sed -n '1,20p' "$file" >&2
+    return 1
+  fi
+  if [ "$natoms" -ne "$header" ]; then
+    echo "ERROR: '$file' header says $header atoms but found $natoms coordinate lines" >&2
+    sed -n '1,20p' "$file" >&2
+    return 1
+  fi
+  if [ -n "$expected" ]; then
+    if ! [[ "$expected" =~ ^[0-9]+$ ]]; then
+      echo "ERROR: invalid expected atom count: '$expected'" >&2
+      return 1
+    elif [ "$expected" -ne "$header" ]; then
+      echo "ERROR: '$file' expected $expected atoms but header says $header" >&2
+      sed -n '1,20p' "$file" >&2
+      return 1
+    fi
+  fi
+}
+
 function get_data_hl_output {
 if [ "$program_hl" = "g09" ] || [ "$program_hl" = "g16" ];then
    energy=$(get_energy_g09_$HLcalc.sh $tsdirhl/${name}.log $noHLcalc)
@@ -1430,6 +1461,7 @@ echo ts$number"_out data"> ${tsdirhl}/TSs/${name}_data
 echo $natom >mingeom.xyz
 echo '' >>mingeom.xyz
 echo "$geom" >> mingeom.xyz
+validate_xyz mingeom.xyz $natom
 createMat.py mingeom.xyz 2 $nA
 echo "1 $natom" | cat - ConnMat | sprint.exe >sprint.out
 
@@ -1456,6 +1488,7 @@ function screen_min_hl {
 echo  $natom > mingeom.xyz
 echo '' >> mingeom.xyz
 echo "$geom" >> mingeom.xyz
+validate_xyz mingeom.xyz $natom
 echo "1" $natom > sprint.dat
 createMat.py mingeom.xyz 3 $nA
 cat ConnMat >> sprint.dat

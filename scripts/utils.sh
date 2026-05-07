@@ -48,6 +48,14 @@ function print_ref {
 function sql_quote {
    local s="$1"
    s="${s//$'\r'/ }"
+   s="${s//$'\n'/ }"
+   s="$(printf '%s' "$s" | sed "s/'/''/g")"
+   printf '%s' "$s"
+}
+
+function sql_quote_multiline {
+   local s="$1"
+   s="${s//$'\r'/ }"
    s="$(printf '%s' "$s" | sed "s/'/''/g")"
    printf '%s' "$s"
 }

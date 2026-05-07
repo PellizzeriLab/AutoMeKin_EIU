@@ -51,7 +51,14 @@ do
 done 
 echo "Total number of minima" $nmin
 #reduce output
-reduce.sh $tsdirll/MINs min
+if ! reduce.sh $tsdirll/MINs min; then
+  echo "minandprod.sh: reduce.sh failed, aborting." >&2
+  exit 1
+fi
+if [ ! -s "$tsdirll/MINs/minlist_screened.red" ]; then
+  echo "minandprod.sh: reduced output missing at $tsdirll/MINs/minlist_screened.red" >&2
+  exit 1
+fi
 awk '{if($NF==1) print $0}' $tsdirll/MINs/minlist_screened.red >  $tsdirll/MINs/minlist_screened.redconn
 awk '{if($NF> 1) print $0}' $tsdirll/MINs/minlist_screened.red >> $tsdirll/MINs/minlist_disconnected
 diffGT.sh $tsdirll/MINs/minlist_screened.redconn $tsdirll/MINs min $avgerr $bigerr

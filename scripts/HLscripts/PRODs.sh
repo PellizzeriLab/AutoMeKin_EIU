@@ -154,7 +154,7 @@ do
          fi
       fi
       nn_sql=$(sql_quote "$nn")
-      inp_sql=$(sql_quote "$inp_hl")
+      inp_sql=$(sql_quote_multiline "$inp_hl")
       echo -e "insert into gaussian values (NULL,'$nn_sql','$inp_sql');\n.quit" | sqlite3 ${dir}/inputs.db
    done
 ####

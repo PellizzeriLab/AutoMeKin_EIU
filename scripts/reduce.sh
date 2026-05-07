@@ -11,30 +11,63 @@ if [ ! -s "$input" ]; then
 fi
 
 sed 's/_/ _ /g;s/'"$pre"'/'"$pre"' /g' "$input" | awk '
+function add_tokens(line,   count, i, parts) {
+  count = split(line, parts, /[[:space:]]+/)
+  for (i = 1; i <= count; i++) {
+    tokens[++tok_count] = parts[i]
+  }
+}
+
+function get_token(   t) {
+  while (tok_pos > tok_count) {
+    if (getline line <= 0) return ""
+    if (line ~ /^$/) continue
+    add_tokens(line)
+  }
+  t = tokens[tok_pos++]
+  return t
+}
+
+function get_number(name,   tok) {
+  tok = get_token()
+  if (tok == "") {
+    print "reduce.sh: unexpected EOF while reading " name > "/dev/stderr"
+    exit 1
+  }
+  return tok
+}
+
 BEGIN { OFS = " " }
 /data/ {
   header = $2
-  if (getline <= 0) { print "reduce.sh: unexpected EOF after data header" > "/dev/stderr"; exit 1 }
-  second = $1
-  if (getline <= 0) { print "reduce.sh: unexpected EOF before n value" > "/dev/stderr"; exit 1 }
-  n = $1
-  printf "%s%s%s", header, OFS, second
+  tok_count = 0
+  tok_pos = 1
+  energy = get_number("energy")
+  n = get_number("n")
+  printf "%s%s%s", header, OFS, energy
   for (i = 1; i <= n; i++) {
-    if (getline <= 0) { print "reduce.sh: unexpected EOF reading block lines" > "/dev/stderr"; exit 1 }
-    printf "%s%s", OFS, $1
-    m = $2
+    v = get_number("block value")
+    m = get_number("block count")
+    if (m+0 != m) {
+      print "reduce.sh: invalid block count " m " for block " i > "/dev/stderr"
+      exit 1
+    }
+    printf "%s%s", OFS, v
     for (j = 1; j <= m; j++) {
-      printf "%s%s", OFS, $(2+j)
+      printf "%s%s", OFS, get_number("block entry")
     }
   }
-  if (getline <= 0) { print "reduce.sh: unexpected EOF before sc line" > "/dev/stderr"; exit 1 }
-  sc = $1
-  if (getline <= 0) { print "reduce.sh: unexpected EOF reading sc values" > "/dev/stderr"; exit 1 }
-  for (k = 1; k <= sc; k++) {
-    printf "%s%s", OFS, $k
+  sc = get_number("sc")
+  if (sc+0 != sc) {
+    print "reduce.sh: invalid sc count " sc > "/dev/stderr"
+    exit 1
   }
-  if (getline <= 0) { print "reduce.sh: unexpected EOF reading final marker" > "/dev/stderr"; exit 1 }
-  printf "%s%s\n", OFS, $1
+  printf "%s%s", OFS, sc
+  for (k = 1; k <= sc; k++) {
+    printf "%s%s", OFS, get_number("sc entry")
+  }
+  marker = get_number("final marker")
+  printf "%s%s\n", OFS, marker
 }
 ' > "$output"
 

@@ -33,20 +33,29 @@ function get_number(name,   tok) {
   if (tok == "") {
     print "reduce.sh: unexpected EOF while reading " name > "/dev/stderr"
     print "       record=" rec_num " header=" record_header > "/dev/stderr"
+    if (payload_line != "") print "       payload=" payload_line > "/dev/stderr"
     exit 1
   }
   return tok
 }
 
-BEGIN { OFS = " "; rec_num = 0; record_header = "" }
+BEGIN { OFS = " "; rec_num = 0; record_header = ""; payload_line = "" }
 /data/ {
   rec_num++
   header = $2
   record_header = $0
+  payload_line = ""
   tok_count = 0
   tok_pos = 1
-  for (i = 3; i <= NF; i++) {
-    tokens[++tok_count] = $i
+  # start reading the payload from the next nonblank line, not from the header line
+  if ((getline line) > 0) {
+    while (line ~ /^$/) {
+      if ((getline line) <= 0) break
+    }
+    if (line !~ /^$/) {
+      payload_line = line
+      add_tokens(line)
+    }
   }
   energy = get_number("energy")
   n = get_number("n")

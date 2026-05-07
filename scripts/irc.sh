@@ -145,7 +145,9 @@ else
    echo $e0 > ${tsdirll}/MINs/${name}_data
    format.sh $name ${tsdirll}/MINs ${nfrag_th}
    datas="$(cat ${tsdirll}/MINs/${name}_data)"
-   sqlite3 ${tsdirll}/MINs/data.db "insert into data (name,datas) values ('$name','$datas');"
+   name_sql=$(sql_quote "$name")
+   datas_sql=$(sql_quote_multiline "$datas")
+   sqlite3 ${tsdirll}/MINs/data.db "insert into data (name,datas) values ('$name_sql','$datas_sql');"
    sqlite3 ${tsdirll}/MINs/min.db "insert into min (natom,name,energy,zpe,g,geom,freq,sigma) values ($natom,'$name',$e0,$zpe0,$g_corr0,'$geom','$freq',$sigma);"
 fi
 # Now we do things specific of IRC 

@@ -32,14 +32,17 @@ function get_number(name,   tok) {
   tok = get_token()
   if (tok == "") {
     print "reduce.sh: unexpected EOF while reading " name > "/dev/stderr"
+    print "       record=" rec_num " header=" record_header > "/dev/stderr"
     exit 1
   }
   return tok
 }
 
-BEGIN { OFS = " " }
+BEGIN { OFS = " "; rec_num = 0; record_header = "" }
 /data/ {
+  rec_num++
   header = $2
+  record_header = $0
   tok_count = 0
   tok_pos = 1
   for (i = 3; i <= NF; i++) {
@@ -53,6 +56,7 @@ BEGIN { OFS = " " }
     m = get_number("block count")
     if (m+0 != m) {
       print "reduce.sh: invalid block count " m " for block " i > "/dev/stderr"
+      print "       record=" rec_num " header=" record_header > "/dev/stderr"
       exit 1
     }
     printf "%s%s", OFS, v
@@ -63,6 +67,7 @@ BEGIN { OFS = " " }
   sc = get_number("sc")
   if (sc+0 != sc) {
     print "reduce.sh: invalid sc count " sc > "/dev/stderr"
+    print "       record=" rec_num " header=" record_header > "/dev/stderr"
     exit 1
   }
   printf "%s%s", OFS, sc

@@ -133,7 +133,7 @@ do
   format.sh $namef ${tsdirll}/MINs ${nfrag_th}
   datas="$(cat ${tsdirll}/MINs/${namef}_data)"
   namef_sql=$(sql_quote "$namef")
-  datas_sql=$(sql_quote "$datas")
+  datas_sql=$(sql_quote_multiline "$datas")
   sqlite3 ${tsdirll}/MINs/data.db "insert into data (name,datas) values ('$namef_sql','$datas_sql');"
   ndis=$(awk '{ndis=$1};END{print ndis}' ${tsdirll}/MINs/${namef}_data )
 ##insert data into prod.db or min.db
@@ -206,7 +206,7 @@ do
   format.sh $namer ${tsdirll}/MINs ${nfrag_th}
   datas="$(cat ${tsdirll}/MINs/${namer}_data)"
   namer_sql=$(sql_quote "$namer")
-  datas_sql=$(sql_quote "$datas")
+  datas_sql=$(sql_quote_multiline "$datas")
   sqlite3 ${tsdirll}/MINs/data.db "insert into data (name,datas) values ('$namer_sql','$datas_sql');"
   ndis=$(awk '{ndis=$1};END{print ndis}' ${tsdirll}/MINs/${namer}_data )
 ##insert data into prod.db or min.db

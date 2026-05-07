@@ -57,7 +57,10 @@ elif [ $ci -eq 1 ]; then
          awk '/Natom/{natom=$2};/Adjace/{for(i=1;i<=natom;i++){getline;print $0}}' sprint.out >> ${working}/${named}_diag
          datas="$(cat ${working}/${named}_data)"
          diags="$(cat ${working}/${named}_diag)"
-         sqlite3 ${working}/data.db "insert into data (name,datas,diags) values ('$named','$datas','$diags');"
+         named_sql=$(sql_quote "$named")
+         datas_sql=$(sql_quote_multiline "$datas")
+         diags_sql=$(sql_quote_multiline "$diags")
+         sqlite3 ${working}/data.db "insert into data (name,datas,diags) values ('$named_sql','$datas_sql','$diags_sql');"
      else
          sqlite3 ${working}/data.db "select datas from data where name='$named'" > ${working}/${named}_data
          sqlite3 ${working}/data.db "select diags from data where name='$named'" > ${working}/${named}_diag

@@ -111,7 +111,9 @@ do
       echo $tmp_e > ${tsdirll}/${name}_data
       format.sh $name $tsdirll $thdiss 
       datas="$(cat ${tsdirll}/${name}_data)"
-      sqlite3 ${tsdirll}/data.db "insert into data (name,datas) values ('$name_data','$datas');"
+      name_data_sql=$(sql_quote "$name_data")
+      datas_sql=$(sql_quote_multiline "$datas")
+      sqlite3 ${tsdirll}/data.db "insert into data (name,datas) values ('$name_data_sql','$datas_sql');"
    else
       sqlite3 ${tsdirll}/data.db "select datas from data where name='$name_data'" > ${tsdirll}/${name}_data
    fi

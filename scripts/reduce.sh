@@ -20,7 +20,7 @@ function add_tokens(line,   count, i, parts) {
 
 function get_token(   t) {
   while (tok_pos > tok_count) {
-    if (getline line <= 0) return ""
+    if ((getline line) <= 0) return ""
     if (line ~ /^$/) continue
     add_tokens(line)
   }
@@ -42,6 +42,9 @@ BEGIN { OFS = " " }
   header = $2
   tok_count = 0
   tok_pos = 1
+  for (i = 3; i <= NF; i++) {
+    tokens[++tok_count] = $i
+  }
   energy = get_number("energy")
   n = get_number("n")
   printf "%s%s%s", header, OFS, energy

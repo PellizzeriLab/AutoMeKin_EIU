@@ -44,5 +44,16 @@ for(i=6;i<=NF;i++) if($i<='$th') {++nconn;printf "%s ",$i > "tmp_ELs" }
 print nconn
 }' sprint.out >> ${dir}/${name}"_data"
 
+if [ "$(awk 'END{print NR}' ${dir}/${name}_data)" -lt 2 ]; then
+  echo "ERROR: format.sh failed to generate screening data for ${name}" >&2
+  echo "       ${dir}/${name}_data contains only $(awk 'END{print NR}' ${dir}/${name}_data) line(s)" >&2
+  echo "       review sprint.out and deg_form.out for errors" >&2
+  echo "--- sprint.out ---" >&2
+  sed -n '1,60p' sprint.out >&2
+  echo "--- deg_form.out ---" >&2
+  sed -n '1,60p' deg_form.out >&2
+  exit 1
+fi
+
 
 
